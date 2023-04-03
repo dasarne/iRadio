@@ -1,0 +1,5 @@
+[Desktop Entry]
+Icon=text-html
+Name=A Simple Arduino Bluetooth Music Receiver and Sender for the ESP32
+Type=Link
+URL[$e]=https://github.com/pschatzmann/ESP32-A2DP
