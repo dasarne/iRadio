@@ -56,7 +56,7 @@ void setupWifi()
     // WiFi.begin(ssid.c_str(), password.c_str());
     WiFiManager wm;
 
-    wm.resetSettings();
+    // wm.resetSettings();
     bool res;
 
     // res = wm.autoConnect(); // auto generated AP name from chipid

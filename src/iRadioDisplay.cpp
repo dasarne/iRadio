@@ -240,7 +240,7 @@ void displayTimer(void *pvParameters)
  */
 void setupDisplay()
 {
-    currentStation = 25;
+    currentStation = 24;
 
     // Die Display-Hardware vorbereiten
     initDisplayHardware();

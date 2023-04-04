@@ -39,7 +39,7 @@ String defaultStations[] = {
     "On 80s Radionetz|http://0n-80s.radionetz.de:8000/0n-70s.mp3",
     "Neue Deutsche Welle|http://streams.80s80s.de/ndw/mp3-192/streams.80s80s.de/",
     "Radio Swiss Classic|http://stream.srg-ssr.ch/rsc_de/mp3_128.m3u",
-    "Radio Bollerwagen|http://185.148.170.20/radiobollerwagen.mp3",
+    "Radio Bollerwagen|http://player.ffn.de/radiobollerwagen.mp3",
     "", "" // Letzter Eintrag
 };
 
@@ -84,28 +84,27 @@ u_int8_t findFreeNumber()
 // Implementierungen für die Klasse Station
 Station::Station(String val)
 {
-  // Es wird der Separator im String gesucht.
-  int index = val.indexOf(separator);
+    // Es wird der Separator im String gesucht.
+    int index = val.indexOf(separator);
 
-  /*Gibt es keinen Separator? Es besteht hier keine Möglichkeit, einen Fehler zu melden. Workaround:
-      Die Variablen mit Leerstrings zu belegen und aufzugeben.
-  */
-  if (index == -1)
-  {
-    name = "";
-    url = "";
-    indexNVM = 0;
-    return;
-  }
+    /*Gibt es keinen Separator? Es besteht hier keine Möglichkeit, einen Fehler zu melden. Workaround:
+        Die Variablen mit Leerstrings zu belegen und aufzugeben.
+    */
+    if (index == -1)
+    {
+        name = "";
+        url = "";
+        indexNVM = 0;
+        return;
+    }
 
-  // Jetzt mit String-Operationen die beiden Werte ermitteln.
-  name = val.substring(0, index);
+    // Jetzt mit String-Operationen die beiden Werte ermitteln.
+    name = val.substring(0, index);
 
-  /* Mit `index+1` wird der Separator im String übersprungen.
-  Das Ende liegt auf INT16_MAX (einer großen Zahl) und meint bis zum weites Möglichen.*/
+    /* Mit `index+1` wird der Separator im String übersprungen.
+    Das Ende liegt auf INT16_MAX (einer großen Zahl) und meint bis zum weites Möglichen.*/
 
-  url = val.substring(index + 1, INT16_MAX);
-
+    url = val.substring(index + 1, INT16_MAX);
 }
 
 u_int8_t iRadioStations::getAnzahlStations()
@@ -166,7 +165,7 @@ void iRadioStations::removeStation(u_int8_t nrStation)
 void iRadioStations::getStations(u_int8_t *stations)
 {
     iRadioPrefs.begin(stationNamespace, false);
-//  iRadioPrefs.clear();
+    // iRadioPrefs.clear();
     u_int8_t anzahlStations = getAnzahlStations();
 
     LOG_DEBUG(TAG, "Anzahl Stationen:" << anzahlStations);

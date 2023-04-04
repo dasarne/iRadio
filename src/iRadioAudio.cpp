@@ -32,7 +32,9 @@ constexpr uint8_t PRE = 25;
 int showTime = 0;
 bool audioIsPlaying = false;
 int volume = 0;
-int oldVolume = 0;
+
+// Oldvolume muss ungleich Volume sein, damit initial die Lautstärke gesetzt wird.
+int oldVolume = -1;
 int encPulses, oldPulses;
 
 void audio_info(const char *info)
