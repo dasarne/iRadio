@@ -24,21 +24,6 @@
 #define ENCB 16  ///< Pin B der Encoder-Verbindung
 #define ENCBUT 4 ///< Switch-Pin des Encoders (der ist _normally closed_ und muss deshalb bei `digitalRead()` invertiert werden)
 
-/** @name Verbindungen für das Display.
- *
- * Das Display wird über SPI (Serial Peripheral Interface) angebunden. Eine gute Übersicht über die verschiedenen Möglichkeiten ein Display
- * anzubinden gibt es [hier](https://macnicadisplays.com/lcd-display-interfaces/)
- */
-/// @{
-constexpr uint8_t SSD_SS = SS;     ///< Slave Select (Pin 5)
-constexpr uint8_t SSD_MISO = MISO; ///< Master Out Slave In (MOSI) (Pin 19)
-constexpr uint8_t SSD_MOSI = MOSI; ///< Master In Slave Out (MISO) (Pin 23)
-constexpr uint8_t SSD_SCK = SCK;   ///< Serial Clock (SCLK or SCK) (Pin 18)
-/// @}
-
-/// Reset
-constexpr uint8_t RESET_PIN = 33;
-
 extern bool buttonPressed;
 extern bool buttonState;
 extern int currentStation; // Stations-Index
@@ -58,6 +43,19 @@ extern uint8_t speaker[];
 extern RW1073 lcd;
 extern ESP32Encoder encoder;
 
+constexpr uint8_t BEL = 32; //< Pin für die Beleuchtung des Displays
+
+/** @name Interface für den Wifi-Thread.
+ * Hier kann der Wifi-Thread melden, ob und wie er verbunden ist.
+ */
+/// @{
+#define SHOW_CONN_UDEF 'U' ///<  undefiniert
+#define SHOW_CONN_NONE 'N' ///<  wenn nicht verbunden
+#define SHOW_CONN_WLAN 'I' ///<  wenn WLAN verbunden
+#define SHOW_CONN_BLUE 'B' ///<  wenn Bluetooth
+extern char showConnection;
+/// @}
+
 int scrollLine(int LineNumber, String textLine);
 void clearLine(uint8_t line);
 String extraChar(String text);
@@ -66,87 +64,7 @@ void printSelectLCD(int Index);
 
 Station getCurrentStation();
 
-void startDisplayTimer();
-
-/**
- * @brief Hilfsmethode, die aus der Codierung UTF-8 die spezifische Codierung 
- * für das Display macht. Nur so werden die Sonderzeichen richtig angezeigt.
- * **Wichtig:** Die ganze Applikation arbeitet mit UTF-8. Erst kurz bevor die Texte dargestellt 
- * werden sollen werden sie für das Display umkodiert. 
- * @param text Text in UTF-8
- * @return String Konvertierter Text.
- */
-String extraChar(String text)
-{
-    String res = "";
-    uint8_t i = 0;
-    char c;
-    while (i < text.length())
-    {
-        c = text[i];
-        if (c == 195) // Vorzeichen = 0xC3
-        {             // UTF8 nicht nur Deutsche Umlaute
-            i++;
-            switch (text[i])
-            {
-            case 168: // è
-                c = 0xA4;
-                break;
-            case 169: // é
-                c = 0xA5;
-                break;
-            case 171: // e doppelpunkt
-                c = 0xF6;
-                break;
-            case 164:
-                // c = 4;
-                c = 0x7B;
-                break; // ä
-            case 182:
-                // c = 5;
-                c = 0x7C;
-                break; // ö
-            case 188:
-                // c = 6;
-                c = 0x7E;
-                break; // ü
-            case 159:
-                // c = 7;
-                c = 0xBE;
-                break; // ß
-            case 132:
-                // c = 1;
-                c = 0x5B;
-                break; // Ä
-            case 150:
-                // c = 2;
-                c = 0x5C;
-                break; // Ö
-            case 156:
-                // c = 3;
-                c = 0x5E;
-                break; // Ü
-            case 225:  // á
-            case 161:
-                c = 0xE7;
-                break;
-            case 0xB1: // ñ
-                c = 0x7d;
-                break;
-            default:
-                c = 0xBB;
-            }
-        }
-        else if (c == 128)
-        { // other special Characters
-            c = 0xc4;
-        }
-        if (c > 0)
-            res.concat(c);
-        i++;
-    }
-    return res;
-}
+void setupDisplay();
 
 /**
  * @brief Die Liste alle Keys (Indizes im NVM).
@@ -154,47 +72,10 @@ String extraChar(String text)
  */
 extern u_int8_t stationKeys[];
 
-/**
- * @brief Schreibt eine einzelne Zeile auf das Display
- * 
- * @param text Text, der ausgegeben werden soll
- * @param y Zeile, in der der Text ausgegeben werden soll
- */
-void writeZeile(String text, u_int8_t y){
-    lcd.setPos(0, y);
-    // Ist der String kleiner als 20 Zeichen, würde der Rest von dem vorherigen Text stehen bleiben.
-    // Deshalb einmal ein 20 Zeichen breites Nichts ausgeben
-    lcd.print("                    ");
-    // Jetzt kommt der Text 
-    lcd.print(extraChar(text));
-};
+void writeText(String zeile1, String zeile2, String zeile3, String zeile4);
 
-/**
- * @brief Schreibt einen Text auf das Display.
- *
- * @param zeile1 Text der  ersten Zeile
- * @param zeile2 Text der zweiten Zeile
- * @param zeile3 Text der dritten Zeile
- * @param zeile4 Text der vierten Zeile
- */
-void writeText(String zeile1, String zeile2, String zeile3, String zeile4){
-    writeZeile(zeile1, 0);
-    writeZeile(zeile2, 1);
-    writeZeile(zeile3, 2);
-    writeZeile(zeile4, 3);
-}
+void writeChar(char c, uint8_t x, u_int8_t y);
 
-/**
- * @brief Ein einzelnes Zeichen auf dem Display ausgeben
- * 
- * @param c Das Zeichen
- * @param x Die x-Koordinate der Position auf dem Display
- * @param y Die y-Koordinate der Position auf dem Display
- */
-void writeChar(char c, uint8_t x, u_int8_t y){
-    lcd.setPos(x,y);
-    lcd.write(c);
-};
-
+void writeZeile(String text, u_int8_t y);
 
 #endif // IRADIOLCD_HPP_

@@ -12,6 +12,9 @@
 #include <iRadioDisplay.hpp>
 #include <Arduino.h>
 
+// Logging-Tag für Easy-Logger
+static const char *TAG = "AUDIO";
+
 /** @name I²S-Verbindung
  *  Hier werden die Steuerleitungen zum I²S den GPIO-Pins am ESP32 zugeordnet.
  *  Genaueres dazu gibt es [hier](https://de.wikipedia.org/wiki/I%C2%B2S)
@@ -32,12 +35,31 @@ int volume = 0;
 int oldVolume = 0;
 int encPulses, oldPulses;
 
+void audio_info(const char *info)
+{
+  LOG_DEBUG(TAG, "Audio_Info: " << info);
+}
+
+void stopPlaying()
+{
+  audio.stopSong();
+}
+
 /**
  * @brief Es wird sich mit dem aktuell ausgewählten Stream verbunden.
  *
  */
 void connectCurrentStation()
 {
+
+  /* Wenn grade ein Stream läuft, dann nicht nochmal versuchen zu verbinden.
+  Soll ein andere Stream gespielt werden bitte stopPlaying aufrufen.
+  */
+  if (audio.getBitRate() != 0)
+  {
+    return;
+  }
+
   // Auslesen der aktuell ausgewählten Station und Ermittlung der zugehörigen url
   String url = getCurrentStation().url;
 
@@ -46,7 +68,8 @@ void connectCurrentStation()
   unsigned int urlLen = url.length();
   char urlCharArr[urlLen + 1]; // +1 wegen der Null am Ende eines Strings
   // Konvertierung
-  url.toCharArray(urlCharArr, urlLen);
+  url.toCharArray(urlCharArr, urlLen + 1);
+
   // Aufruf
   audio.connecttohost(urlCharArr);
 }
@@ -59,25 +82,19 @@ void setupAudio()
 {
   analogReadResolution(10);
 
-  // Das Lautstärke-Poti ist an einen Analogen Eingang
-  volume = analogRead(VOL);
-  volume = map(volume, 0, 1023, 0, volume_max);
-  pinMode(MUTE, OUTPUT);
-
-  // Mute ausschalten!
-  digitalWrite(MUTE, LOW); 
-
   // Connect MAX98357 I2S Amplifier Module
   audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
 
-  connectCurrentStation();
+  // Mute ausschalten!
+  pinMode(MUTE, OUTPUT);
+  digitalWrite(MUTE, LOW);
 }
 
 /**
  * @brief Regelmäßiges Aktualisieren der Audio-Einstellungen.
  *
  */
-void loopAudio()
+void loopAudioLautst()
 {
   audio.loop();
   volume = analogRead(VOL);

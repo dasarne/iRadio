@@ -13,7 +13,7 @@
 /* Use the LOG_FILTER definition with a comma separated list of services you want to show.
    Every service in this list will get logged
 */
-#define LOG_FILTER "MAIN,DISPLAY,CLOCK,ALARM,SOUND,NTP"
+#define LOG_FILTER "DISPLAY,MAIN,AUDIO,WIFI,STATIONS"
 
 /* If you define LOG_FILTER_EXCLUDE, then everything will be logged except services
    listed in LOG_FILTER. Effectively it reverses the filter */

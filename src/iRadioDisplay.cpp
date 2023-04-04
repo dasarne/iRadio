@@ -17,6 +17,19 @@
 // Logging-Tag für Easy-Logger
 static const char *TAG = "DISPLAY";
 
+/** @name Verbindungen für das Display.
+ *
+ * Das Display wird über SPI (Serial Peripheral Interface) angebunden. Eine gute Übersicht über die verschiedenen Möglichkeiten ein Display
+ * anzubinden gibt es [hier](https://macnicadisplays.com/lcd-display-interfaces/)
+ */
+/// @{
+constexpr uint8_t SSD_SS = SS;     ///< Slave Select (Pin 5)
+constexpr uint8_t SSD_MISO = MISO; ///< Master Out Slave In (MOSI) (Pin 19)
+constexpr uint8_t SSD_MOSI = MOSI; ///< Master In Slave Out (MISO) (Pin 23)
+constexpr uint8_t SSD_SCK = SCK;   ///< Serial Clock (SCLK or SCK) (Pin 18)
+constexpr uint8_t RESET_PIN = 33;  ///< Pin, mit dem das Display zurückgesetzt werden kann. (Ist verbunden, brauchen wir aber nicht.)
+/// @}
+
 /**
  * @brief Globale Variablen
  *
@@ -42,12 +55,13 @@ char lcdText[] = "  Campuswoche 2023  ";
 char delimiter[] = "-";
 
 iRadioStations nvmStations;
+char showConnection = SHOW_CONN_UDEF;
 
 /**
  * @brief Die Liste alle Keys (Indizes im NVM).
  *
  */
-extern u_int8_t stationKeys[ALLOW_STATIONS];
+u_int8_t stationKeys[ALLOW_STATIONS];
 
 int volumePulses;
 /**
@@ -145,7 +159,11 @@ void printSelectLCD(int Index)
     if (Index >= anzStations)
         Index = anzStations - 1;
 
-    writeText("   Internet Radio  ", "*Select Station!", "", getStation(Index).name);
+    writeText(
+        "   Internet Radio  ",
+        "  Select a Station:",
+        "",
+        getStation(Index).name);
     // Schreiben des Lautsprecher-Symbols
     writeChar(19, 0, byte(4));
 }
@@ -154,7 +172,7 @@ void printSelectLCD(int Index)
  * @brief Konfigurieren des Displays. Wird vom Thread zur Verwaltung des Displays angesprungen.
  * Initialisiert das Display und den Encoder (... den Drehknopf links neben dem Display).
  */
-void setupDisplay()
+void initDisplayHardware()
 {
     // ###### Inialisierung des Encoders ######
     /* Pin (Eingabe), die mitkriegt, wenn der Knopf gedrückt wird.
@@ -163,6 +181,8 @@ void setupDisplay()
      * -       gedrückt ist, ist der Pegel LOW
      */
     pinMode(ENCBUT, INPUT_PULLUP);
+    pinMode(BEL, OUTPUT);
+    digitalWrite(BEL, HIGH);
 
     /* Anmelden der beiden Pins (ENCA, ENCB) bei dem Treiber für den Encoder. Siehe Anleitung des Encoder-Treibers
        https://github.com/madhephaestus/ESP32Encoder
@@ -173,8 +193,6 @@ void setupDisplay()
     // Den Zählwert des Encoders löschen und den ermittelten Wert auf Null setzen
     encoder.clearCount();
 
-    pinMode(RESET_PIN, OUTPUT);
-
     // ###### Inialisierung des Displays ######
     lcd.begin(); // default 20*4
 
@@ -183,6 +201,8 @@ void setupDisplay()
 
     // Einlesen aller Stations-Indizes
     nvmStations.getStations(stationKeys);
+
+    lcdText[3] = 0xA0; // 0xA0 = '@'
 }
 
 TaskHandle_t displayTask;
@@ -193,13 +213,10 @@ TaskHandle_t displayTask;
  */
 void displayTimer(void *pvParameters)
 {
-    // Alles vorbereiten
-    setupDisplay();
 
     // Endlosschleife: Kein Ende des Display-Management vorgesehen.
     while (true)
     {
-        lcdText[3] = 0xA0; // 0xA0 = '@'
 
         // Erstmal einen Begrüßungstext schreiben
         writeText(
@@ -209,6 +226,7 @@ void displayTimer(void *pvParameters)
             "  http://42volt.de  ",
             lcdText);
 
+        writeChar(showConnection, 19, 0);
         delay(1000);
     }
 }
@@ -220,8 +238,13 @@ void displayTimer(void *pvParameters)
  *
  * Die folgende Funktion wird von main aufgerufen und startet den Thread, der das Display verwaltet.
  */
-void startDisplayTimer()
+void setupDisplay()
 {
+    currentStation = 25;
+
+    // Die Display-Hardware vorbereiten
+    initDisplayHardware();
+
     // Wichtig hier: Der Task läuft auf dem Core 0.
     // Per Default läuft alles was sonst im Arduino startet auf dem Core 1.
     xTaskCreatePinnedToCore(
@@ -233,5 +256,138 @@ void startDisplayTimer()
         &displayTask, /* Task handle. */
         0);           /* Core where the task should run */
 }
+
+/**
+ * @brief Hilfsmethode, die aus der Codierung UTF-8 die spezifische Codierung
+ * für das Display macht. Nur so werden die Sonderzeichen richtig angezeigt.
+ * **Wichtig:** Die ganze Applikation arbeitet mit UTF-8. Erst kurz bevor die Texte dargestellt
+ * werden sollen werden sie für das Display umkodiert.
+ * @param text Text in UTF-8
+ * @return String Konvertierter Text.
+ */
+String extraChar(String text)
+{
+    String res = "";
+    uint8_t i = 0;
+    char c;
+    while (i < text.length())
+    {
+        c = text[i];
+        if (c == 195) // Vorzeichen = 0xC3
+        {             // UTF8 nicht nur Deutsche Umlaute
+            i++;
+            switch (text[i])
+            {
+            case 168: // è
+                c = 0xA4;
+                break;
+            case 169: // é
+                c = 0xA5;
+                break;
+            case 171: // e doppelpunkt
+                c = 0xF6;
+                break;
+            case 164:
+                // c = 4;
+                c = 0x7B;
+                break; // ä
+            case 182:
+                // c = 5;
+                c = 0x7C;
+                break; // ö
+            case 188:
+                // c = 6;
+                c = 0x7E;
+                break; // ü
+            case 159:
+                // c = 7;
+                c = 0xBE;
+                break; // ß
+            case 132:
+                // c = 1;
+                c = 0x5B;
+                break; // Ä
+            case 150:
+                // c = 2;
+                c = 0x5C;
+                break; // Ö
+            case 156:
+                // c = 3;
+                c = 0x5E;
+                break; // Ü
+            case 225:  // á
+            case 161:
+                c = 0xE7;
+                break;
+            case 0xB1: // ñ
+                c = 0x7d;
+                break;
+            default:
+                c = 0xBB;
+            }
+        }
+        else if (c == 128)
+        { // other special Characters
+            c = 0xc4;
+        }
+        if (c > 0)
+            res.concat(c);
+        i++;
+    }
+    return res;
+}
+
+/**
+ * @brief Schreibt eine einzelne Zeile auf das Display
+ *
+ * @param text Text, der ausgegeben werden soll
+ * @param y Zeile, in der der Text ausgegeben werden soll
+ */
+void writeZeile(String text, u_int8_t y)
+{
+    lcd.setPos(0, y);
+    u_int8_t len = text.length();
+
+    // Ziel ist es einen Text zu erzeugen, der genau 20 Zeichen lang ist.
+    String fittingText;
+    if (len < 20)
+        // Ist der String kleiner als 20 Zeichen, würde der Rest von dem vorherigen Text stehen bleiben.
+        // Deshalb Leerzeichen anhängen 20 Zeichen breites Nichts ausgeben
+        fittingText = text + String("                    ").substring(0, 20 - text.length());
+    else
+        fittingText = text.substring(0, 20);
+
+    // Jetzt kommt der Text auf das Display
+    lcd.print(extraChar(fittingText));
+};
+
+/**
+ * @brief Schreibt einen Text auf das Display.
+ *
+ * @param zeile1 Text der  ersten Zeile
+ * @param zeile2 Text der zweiten Zeile
+ * @param zeile3 Text der dritten Zeile
+ * @param zeile4 Text der vierten Zeile
+ */
+void writeText(String zeile1, String zeile2, String zeile3, String zeile4)
+{
+    writeZeile(zeile1, 0);
+    writeZeile(zeile2, 1);
+    writeZeile(zeile3, 2);
+    writeZeile(zeile4, 3);
+}
+
+/**
+ * @brief Ein einzelnes Zeichen auf dem Display ausgeben
+ *
+ * @param c Das Zeichen
+ * @param x Die x-Koordinate der Position auf dem Display
+ * @param y Die y-Koordinate der Position auf dem Display
+ */
+void writeChar(char c, uint8_t x, u_int8_t y)
+{
+    lcd.setPos(x, y);
+    lcd.write(c);
+};
 
 #endif // IRADIOLCD_CPP_

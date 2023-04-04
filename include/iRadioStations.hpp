@@ -27,11 +27,6 @@ extern String stations[];
 
 #define ALLOW_STATIONS 100 ///< Es werden 100 Stationen gespeichert.
 
-/** @brief Sollte im NVM noch etwas anderes abgespeichert werden als Sender, müssen wir die
- * unsere Einträge wiederfinden, deshalb nutzen wir diesen Namespace. Hier finden wir nur Stations.
- */
-const char *stationNamespace = "Station";
-
 /**
  * @brief Diese Klasse verwaltet eine einzelne Station. Eine Station hat einen Namen und eine URL wo wir den
  * Datenstrom des Audios erreichen können. Die Klasse hat die Aufgabe nicht nur diese Daten in einem Objekt zu
@@ -51,6 +46,10 @@ public:
     String name;           ///< Name der Station
     u_int8_t indexNVM = 0; ///< index der Station im NVM
 
+    Station()
+    {
+    }
+
     /// @brief Konstruktor für das Neuanlegen eines Senders, der noch nicht bekannt ist.
     /// @param url ///< url des Streams
     /// @param name ///< Name der Station
@@ -65,29 +64,8 @@ public:
      *
      * @param val Wert, der im NVM gefunden wurde.
      */
-    Station(String val)
-    {
-        // Es wird der Separator im String gesucht.
-        int index = val.indexOf(separator);
-
-        /*Gibt es keinen Separator? Es besteht hier keine Möglichkeit, einen Fehler zu melden. Workaround:
-            Die Variablen mit Leerstrings zu belegen und aufzugeben.
-        */
-        if (index == -1)
-        {
-            name = "";
-            url = "";
-            indexNVM = 0;
-            return;
-        }
-
-        // Jetzt mit String-Operationen die beiden Werte ermitteln.
-        name = val.substring(0, index);
-
-        // Mit `index+1` wird der Separator im String übersprungen.
-        url = val.substring(index + 1, val.length());
-    };
-
+    Station(String val);
+    
     /**
      * @brief Erzeugt einen String, der in den NVM geschrieben werden kann.
      *
@@ -96,21 +74,20 @@ public:
     String toPreferences() { return name + separator + url; };
 };
 
-
 class iRadioStations
 {
 private:
 public:
     /**
      * @brief Fügt eine neue Station zum NVM hinzu
-     * 
-     * @param newStation 
+     *
+     * @param newStation
      */
     void addStation(Station newStation);
 
     /**
      * @brief Löscht eine Station
-     * 
+     *
      * @param nrStation Index im NVM von der Station
      */
     void removeStation(u_int8_t nrStation);
@@ -125,12 +102,12 @@ public:
 
     /**
      * @brief Getter für ein Station Objekt
-     * 
+     *
      * @param nrStation Index im NVM von der Station
      * @return Station Zugehörige Station
      */
     Station getStation(u_int8_t nrStation);
-    
+
     /**
      * @brief Getter für die Anzahl der Stationen im NVM.
      *

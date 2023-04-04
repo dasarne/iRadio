@@ -1,5 +1,7 @@
 #include <iRadioWifi.hpp>
 #include <iRadioDisplay.hpp>
+#include <iRadioAudio.hpp>
+
 /**
  * @file iRadioWifi.cpp
  * @author Dieter Zumkehr, Arne v.Irmer (Dieter.Zumkehr @ fh-Dortmund.de, Arne.vonIrmer @ tu-dortmund.de)
@@ -10,13 +12,40 @@
  * @copyright Copyright (c) 2023
  *
  */
+// Logging-Tag für Easy-Logger
+static const char *TAG = "WIFI";
 
 // Provisorisch: Hier sind die Wifi Credentials
 String ssid = "hw1_gast";
 String password = "KeineAhnung";
+TaskHandle_t wifiTask;
+
+/**
+ * @brief Multithreading-Einstieg: Hier wird das Display verwaltet
+ *
+ */
+void wifiTimer(void *pvParameters)
+{
+    // Timer, der versucht, sich im WLAN anzumelden
+    while (true)
+    {
+        delay(1000);
+        if (WiFi.status() != WL_CONNECTED)
+        {
+            showConnection = SHOW_CONN_NONE;
+        }
+        else
+        {
+            showConnection = SHOW_CONN_WLAN;
+            connectCurrentStation();
+        }
+    }
+}
 
 void setupWifi()
 {
+    LOG_DEBUG(TAG, "setupWifi");
+
     // Wifi zurücksetzen
     WiFi.disconnect();
 
@@ -24,44 +53,29 @@ void setupWifi()
     WiFi.mode(WIFI_STA);
 
     // Verbindung zum WLAN aufbauen
-    WiFi.begin(ssid.c_str(), password.c_str());
-    
-    // 5 Sekunden warten, ob man WLAN kriegt.
-    unsigned int ticker = millis();
+    // WiFi.begin(ssid.c_str(), password.c_str());
+    WiFiManager wm;
 
-    while (WiFi.status() != WL_CONNECTED)
+    wm.resetSettings();
+    bool res;
+
+    // res = wm.autoConnect(); // auto generated AP name from chipid
+    // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
+    res = wm.autoConnect("CampusRadioAP"); // password protected ap
+    if (!res)
     {
-        delay(500);
-        if (millis() - ticker > 5000)
-        {
-            writeText(
-                "   Internet Radio   ",
-                "Could NOT connect to",
-                ssid,
-                ""
-                );
-             
-            delay(1000);
-        }
+        Serial.println("failed to connect!!");
+        ESP.restart();
+        delay(2000);
     }
 
-    // WiFi Connected, print IP to serial monitor
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
-    Serial.println("");
-
-    lcd.setPos(0, 0);
-    lcd.print("   Internet Radio  ");
-    lcd.setPos(19, 0);  // Start headline at character 19 on line 0
-    lcd.write(byte(4)); // loudspeaker symbol
-    lcd.setPos(0, 1);
-    lcd.print("Listen to:          ");
-    lcd.setPos(0, 2);
-    lcd.print(stationlist[PRE].name);
-    ticker = millis();
-    delay(5000);
-    lcd.clear();
-    state = IDLE;
+    // Thread der versucht eine WLAN-Verbindung aufzubauen.
+    xTaskCreate(
+        wifiTimer,  /* Function to implement the task */
+        "TaskWifi", /* Name of the task */
+        10000,      /* Stack size in words */
+        NULL,       /* Task input parameter */
+        0,          /* Priority of the task */
+        &wifiTask   /* Task handle. */
+    );
 }

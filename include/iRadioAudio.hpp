@@ -15,8 +15,6 @@
 #include <Audio.h>
 #include <ESP32Encoder.h>
 
-
-
 /** @name Lautsprecher Steuerung
  */
 /// @{
@@ -36,8 +34,27 @@ extern Audio audio;
 
 /**
  * @brief Hier wird das Audio-Interface konfiguriert.
- * 
+ *
  */
 void setupAudio();
+
+/**
+ * @brief Diese Methode wird aus dem Loop aufgerufen und regelt die Lautstärke aufgrund
+ * der Stellung des Potis
+ * 
+ */
+void loopAudioLautst();
+
+/**
+ * @brief Versucht sich mit dem aktuell ausgewählten Stream zu verbinden.
+ * Wenn bereits ein Stream läuft, wird kein Stream gespielt.
+ */
+void connectCurrentStation();
+
+/**
+ * @brief Der Stream wird gestoppt.
+ * 
+ */
+void stopPlaying();
 
 #endif // IRADIOAUDIO_HPP_
