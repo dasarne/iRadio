@@ -17,6 +17,9 @@
 // Logging-Tag für Easy-Logger
 static const char *TAG = "DISPLAY";
 
+StreamingScreen streamingScreen;
+RadioEncoder iEncoder;
+
 /** @name Verbindungen für das Display.
  *
  * Das Display wird über SPI (Serial Peripheral Interface) angebunden. Eine gute Übersicht über die verschiedenen Möglichkeiten ein Display
@@ -36,22 +39,16 @@ constexpr uint8_t RESET_PIN = 33;  ///< Pin, mit dem das Display zurückgesetzt 
  */
 /// @{
 RW1073 lcd(SSD_SS, SSD_MISO, SSD_MOSI, SSD_SCK, RESET_PIN); ///< Treiber für das Display
-ESP32Encoder encoder;                                       ///< Treiber für den Encoder (Drehknopf)
 /// @}
 
-bool buttonPressed = false;
-bool buttonState = false;
 int currentStation = 25; // Stations-Index
 int stationIndex = 0;
-int oldStation = 0;
 int lcdMenue = 0;
-int scrollCount = 0;
-unsigned long debounce;
 int selectStation;
 String streamTitle = "";
 String streamInterpret = "";
 String streamStation = "";
-char lcdText[] = "  Campuswoche 2023  ";
+char headingText[] = "  Campuswoche 2023  ";
 char delimiter[] = "-";
 
 iRadioStations nvmStations;
@@ -174,35 +171,21 @@ void printSelectLCD(int Index)
  */
 void initDisplayHardware()
 {
-    // ###### Inialisierung des Encoders ######
-    /* Pin (Eingabe), die mitkriegt, wenn der Knopf gedrückt wird.
-     * Wenn der Knopf
-     * - nicht gedrückt ist, ist der Pegel HIGH
-     * -       gedrückt ist, ist der Pegel LOW
-     */
-    pinMode(ENCBUT, INPUT_PULLUP);
+    // Belichtung des Displays anschalten
     pinMode(BEL, OUTPUT);
     digitalWrite(BEL, HIGH);
 
-    /* Anmelden der beiden Pins (ENCA, ENCB) bei dem Treiber für den Encoder. Siehe Anleitung des Encoder-Treibers
-       https://github.com/madhephaestus/ESP32Encoder
-    */
-    encoder.attachHalfQuad(ENCA, ENCB);
-    ESP32Encoder::useInternalWeakPullResistors = UP;
-
-    // Den Zählwert des Encoders löschen und den ermittelten Wert auf Null setzen
-    encoder.clearCount();
+    // Den Encoder initialisieren
+    iEncoder.init();
 
     // ###### Inialisierung des Displays ######
     lcd.begin(); // default 20*4
-
-    // Auf das Zeichen mit dem Wert 4 wird ein Lautsprechersymbol drauf gelegt.
-    lcd.create(4, speaker);
+    lcd.cursorOff();
 
     // Einlesen aller Stations-Indizes
     nvmStations.getStations(stationKeys);
 
-    lcdText[3] = 0xA0; // 0xA0 = '@'
+    headingText[3] = 0xA0; // 0xA0 = '@'
 }
 
 TaskHandle_t displayTask;
@@ -218,15 +201,17 @@ void displayTimer(void *pvParameters)
     while (true)
     {
 
-        // Erstmal einen Begrüßungstext schreiben
-        writeText(
-            //---20 Zeichen----->
-            "   Internet Radio   ",
-            "       From         ",
-            "  http://42volt.de  ",
-            lcdText);
+        // Test
+        streamingScreen.initScreen();
 
-        writeChar(showConnection, 19, 0);
+        streamingScreen.setText(headingText, 0);
+        streamingScreen.setText("After defining", 1);
+        streamingScreen.setText("Also, The consecutive values of the enum will have the next", 2);
+        streamingScreen.setText("It can be declared during declaring enumerated types, just add", 3);
+
+        EncoderState state = streamingScreen.showScreen();
+        LOG_DEBUG(TAG, "State:" << state);
+        // writeChar(showConnection, 19, 0);
         delay(1000);
     }
 }

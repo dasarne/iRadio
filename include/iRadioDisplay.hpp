@@ -9,15 +9,22 @@
  *
  */
 
-#ifndef IRADIOLCD_HPP_
-#define IRADIOLCD_HPP_
+#ifndef IRADIODISPLAY_HPP_
+#define IRADIODISPLAY_HPP_
 
 #include <Arduino.h>
 #include <lcd_esp.h>
 #include <ESP32Encoder.h>
 #include <iRadioStations.hpp>
-#include <iRadioDisplay.hpp>
+#include <streamingScreen.hpp>
+#include <iRadioEncoder.hpp>
+
 #include <log.h>
+
+/**
+ * @brief Zugriff auf das Display, das das Streaming begleitet.
+ */
+extern StreamingScreen streamScreen;
 
 // Definitionen für die Encoder-Verbindungen (Der Drehschalter wird z.B. zur Senderwahl genutzt):
 #define ENCA 17  ///< Pin A der Encoder-Verbindung
@@ -37,11 +44,11 @@ extern int selectStation;
 extern String streamTitle;
 extern String streamInterpret;
 extern String streamStation;
-extern char lcdText[];
+extern char headingText[];
 extern char delimiter[];
 extern uint8_t speaker[];
 extern RW1073 lcd;
-extern ESP32Encoder encoder;
+extern RadioEncoder iEncoder;
 
 constexpr uint8_t BEL = 32; //< Pin für die Beleuchtung des Displays
 
@@ -66,6 +73,8 @@ Station getCurrentStation();
 
 void setupDisplay();
 
+
+
 /**
  * @brief Die Liste alle Keys (Indizes im NVM).
  *
@@ -78,4 +87,4 @@ void writeChar(char c, uint8_t x, u_int8_t y);
 
 void writeZeile(String text, u_int8_t y);
 
-#endif // IRADIOLCD_HPP_
+#endif // IRADIODISPLAY_HPP_
