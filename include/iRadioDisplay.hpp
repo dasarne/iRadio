@@ -24,7 +24,7 @@
 /**
  * @brief Zugriff auf das Display, das das Streaming begleitet.
  */
-extern StreamingScreen streamScreen;
+extern StreamingScreen streamingScreen;
 
 // Definitionen für die Encoder-Verbindungen (Der Drehschalter wird z.B. zur Senderwahl genutzt):
 #define ENCA 17  ///< Pin A der Encoder-Verbindung
@@ -41,9 +41,6 @@ extern int scrollCount;
 extern unsigned long ticker;
 extern unsigned long debounce;
 extern int selectStation;
-extern String streamTitle;
-extern String streamInterpret;
-extern String streamStation;
 extern char headingText[];
 extern char delimiter[];
 extern uint8_t speaker[];

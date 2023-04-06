@@ -16,7 +16,7 @@
 static const char *TAG = "WIFI";
 
 // Provisorisch: Hier sind die Wifi Credentials
-String ssid = "hw1_gast";
+String ssid = "jimWifi";
 String password = "KeineAhnung";
 TaskHandle_t wifiTask;
 
@@ -44,7 +44,6 @@ void wifiTimer(void *pvParameters)
 
 void setupWifi()
 {
-    LOG_DEBUG(TAG, "setupWifi");
 
     // Wifi zurücksetzen
     WiFi.disconnect();
@@ -53,7 +52,7 @@ void setupWifi()
     WiFi.mode(WIFI_STA);
 
     // Verbindung zum WLAN aufbauen
-    // WiFi.begin(ssid.c_str(), password.c_str());
+    WiFi.begin(ssid.c_str(), password.c_str());
     WiFiManager wm;
 
     // wm.resetSettings();

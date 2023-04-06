@@ -41,14 +41,11 @@ constexpr uint8_t RESET_PIN = 33;  ///< Pin, mit dem das Display zurückgesetzt 
 RW1073 lcd(SSD_SS, SSD_MISO, SSD_MOSI, SSD_SCK, RESET_PIN); ///< Treiber für das Display
 /// @}
 
-int currentStation = 25; // Stations-Index
+int currentStation; // Stations-Index
 int stationIndex = 0;
 int lcdMenue = 0;
 int selectStation;
-String streamTitle = "";
-String streamInterpret = "";
-String streamStation = "";
-char headingText[] = "  Campuswoche 2023  ";
+char headingText[] = "iRadio";
 char delimiter[] = "-";
 
 iRadioStations nvmStations;
@@ -84,52 +81,6 @@ Station getStation(uint8_t displayIndex)
 // Special character to show a speaker icon for current station
 uint8_t speaker[8] = {0x3, 0x5, 0x19, 0x11, 0x19, 0x5, 0x3, 0x0};
 
-/**
- * @brief Zeigt einen String, der Länger ist als 20 Zeichen scrollend auf dem Display an
- * Wenn der Text durchgescrollt ist, wird wieder von Vorne angefangen.
- *
- * @param LineNumber Auf welcher Zeile im Display soll der Text denn angezeigt werden?
- * @param textLine Text, der angezeigt werden soll
- * @param aktPos Wo stehen wir grade beim Scrollen? Wenn nichts angegeben bei 0 (am Anfang)
- * @return int Die aktuelle Position des Textes im Display
- */
-int scrollLine(int LineNumber, String textLine, uint8_t aktPos = 0)
-{
-    String lcdLine;
-
-    // Länge das Textes
-    uint8_t len = textLine.length();
-
-    // Gibt es überhaupt etwas zu scrollen?
-    if (len < 21)
-    {
-        // ... nein, also einfach den Text ausgeben
-        writeZeile(textLine, LineNumber);
-    }
-    else
-    {
-        // ... ja, dann scrollen.
-
-        // Welche Strecke muss gescrollt werden?
-        int scrollChar = len - 19;
-
-        // Sind wir mit dem Scrollen am Ende des Textes?
-        if (aktPos < scrollChar)
-        {
-            // ... nein also die Scrollmarke einen weitersetzen
-            aktPos++;
-        }
-        else
-        {
-            aktPos = 0;
-        }
-
-        // Die neue Zeile ausgeben.
-        writeZeile(textLine.substring(aktPos, 20 + aktPos), LineNumber);
-    }
-    return aktPos;
-}
-
 Station getCurrentStation()
 {
     return getStation(currentStation);
@@ -142,27 +93,6 @@ Station getCurrentStation()
 void showStation()
 {
     writeZeile(getCurrentStation().name, 3);
-}
-
-void printSelectLCD(int Index)
-{
-    String stationName;
-    uint8_t anzStations = nvmStations.getAnzahlStations();
-
-    // UNgültigen Parameter begrenzen.
-    if (Index < 0)
-        Index = 0;
-
-    if (Index >= anzStations)
-        Index = anzStations - 1;
-
-    writeText(
-        "   Internet Radio  ",
-        "  Select a Station:",
-        "",
-        getStation(Index).name);
-    // Schreiben des Lautsprecher-Symbols
-    writeChar(19, 0, byte(4));
 }
 
 /**
@@ -184,8 +114,6 @@ void initDisplayHardware()
 
     // Einlesen aller Stations-Indizes
     nvmStations.getStations(stationKeys);
-
-    headingText[3] = 0xA0; // 0xA0 = '@'
 }
 
 TaskHandle_t displayTask;
@@ -200,18 +128,11 @@ void displayTimer(void *pvParameters)
     // Endlosschleife: Kein Ende des Display-Management vorgesehen.
     while (true)
     {
+        streamingScreen.setText(headingText,0);
 
-        // Test
-        streamingScreen.initScreen();
-
-        streamingScreen.setText(headingText, 0);
-        streamingScreen.setText("After defining", 1);
-        streamingScreen.setText("Also, The consecutive values of the enum will have the next", 2);
-        streamingScreen.setText("It can be declared during declaring enumerated types, just add", 3);
-
+        // Defaultmäßig die Streamingansicht anzeigen. 
         EncoderState state = streamingScreen.showScreen();
         LOG_DEBUG(TAG, "State:" << state);
-        // writeChar(showConnection, 19, 0);
         delay(1000);
     }
 }

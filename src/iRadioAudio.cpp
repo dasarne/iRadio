@@ -108,3 +108,35 @@ void loopAudioLautst()
     oldVolume = volume;
   }
 }
+
+/**
+ * @brief Implementiert eine `weak` gebundene Methode der Audio-Klasse (Infos dazu gibt es [hier](https://en.wikipedia.org/wiki/Weak_symbol))
+ * Diese Methode wird aufgerufen, wenn ein neues Stück gespielt wird. Sie gibt den Interpreten und den Titel des Stückes zurück.
+ * @param theStreamTitle Der Titel, der grade gespielt wird.
+ */
+void audio_showstreamtitle(const char *theStreamTitle)
+{
+  String name = String(theStreamTitle);
+  uint8_t p = name.indexOf(" - "); // between artist & title
+  if (p == 0)
+  {
+    p = name.indexOf(": ");
+  }
+  // Den gefundenen Musiker-Namen in die 3 Zeile (da 0 das erste Element in 2) des Stream-Screens schreiben
+  streamingScreen.setText(name.substring(0, p), 2);
+  // Den gefundenen Musik-Titel in die 4 Zeile (da 0 das erste Element in 3) des Stream-Screens schreiben
+
+  streamingScreen.setText(name.substring(p + 3, name.length()), 3);
+}
+
+/**
+ * @brief Implementiert eine `weak` gebundene Methode der Audio-Klasse (Infos dazu gibt es [hier](https://en.wikipedia.org/wiki/Weak_symbol))
+ * Diese Methode wird aufgerufen, wenn ein neues Stück gespielt wird. Sie gibt die Station zurück.
+ * @param theStation
+ */
+void audio_showstation(const char *theStation)
+{
+  // Den gefundenen Musiker-Namen in die 2 Zeile (da 0 das erste Element in 1) des Stream-Screens schreiben
+  // streamingScreen.setText(String(theStation), 1);
+  streamingScreen.setText(getCurrentStation().name, 1);
+}

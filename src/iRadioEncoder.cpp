@@ -1,14 +1,19 @@
 #include <iRadioDisplay.hpp>
 
-#define LONG_PRESS_TIME 500
+#define LONG_PRESS_TIME 500 ///< Zeit in [ms] die gewartet wird, um einen lang gedrückten Button zu erkennen.
 
 // Logging-Tag für Easy-Logger
 static const char *TAG = "ENCODER";
 
 EncoderState buttonStatus = EncoderState::nothing;
 
-unsigned long last_button_time = 0;
+unsigned long last_button_time = 0; ///< Globale Variable, um den zeitlichen Abstand zwischen Drücken und Loslassen des Encoderbuttons zu messen [ms] 
 
+/**
+ * @brief Timer, der bei lange gedrückter Taste die Auswertung abbricht und den Status `EncoderState::longPress` setzt.
+ * So kann man, wenn man lange drücken will einfach so lange drücken, bis der Knopf auslöst.
+ * @param pvParameters Wird nicht ausgewertet.
+ */
 void longPressISR(void *pvParameters)
 {
     while (true)
