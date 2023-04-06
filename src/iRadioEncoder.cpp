@@ -1,11 +1,31 @@
 #include <iRadioDisplay.hpp>
 
+#define LONG_PRESS_TIME 500
+
 // Logging-Tag für Easy-Logger
 static const char *TAG = "ENCODER";
 
 EncoderState buttonStatus = EncoderState::nothing;
 
 unsigned long last_button_time = 0;
+
+void longPressISR(void *pvParameters)
+{
+    while (true)
+    {
+        if (last_button_time != 0)
+        {
+            if (millis() - last_button_time > LONG_PRESS_TIME)
+            {
+                // Gebe das Signal, das der Event schon gesendet wurde
+                last_button_time = 0;
+                buttonStatus = EncoderState::longPress;
+            }
+        }
+
+        delay(LONG_PRESS_TIME);
+    }
+}
 
 /**
  * @brief Helfer Methode, die bei einem Wechsel der Tastenstatus vom Encoder-Taster aufgerufen wird.
@@ -17,15 +37,20 @@ void IRAM_ATTR buttonIsr()
     int pin_state = digitalRead(ENCBUT);
     unsigned long button_time = millis();
 
-    if (pin_state == HIGH)
+    // Wenn der Knopf losgelassen wurde (`pin_state == HIGH`), wird die Zeit gemessen und ausgewertet.
+    // Aber nur wenn nicht schon die Zeit für den Button abgelaufen ist (last_button_time != 0), wird er noch ausgewertet.
+    if (pin_state == HIGH && last_button_time != 0)
     {
         unsigned long diff = button_time - last_button_time;
+
+        // Gebe das Signal, das der Event schon gesendet wurde
+        last_button_time = 0;
 
         if (diff < 50)
         {
             // Tasten-Preller
         }
-        else if (diff < 200)
+        else if (diff < LONG_PRESS_TIME)
         {
             buttonStatus = EncoderState::shortPress;
         }
@@ -35,8 +60,12 @@ void IRAM_ATTR buttonIsr()
         }
     }
 
-    last_button_time = button_time;
+    // Wenn der Knopf gedrückt wurde, wird die Zeit gespeichert. Damit wird das Signal gesetzt, das ein Event beim Knopf loslassen ausgewertet werden muss
+    if (pin_state == LOW)
+        last_button_time = button_time;
 }
+
+TaskHandle_t buttonTask;
 
 void RadioEncoder::init()
 {
@@ -53,6 +82,14 @@ void RadioEncoder::init()
     weil das Rechenleistung kostet und den Code kompliziert macht, wenn zwischen lang oder kurz gedrückt
     unterscheiden möchte.*/
     attachInterrupt(ENCBUT, buttonIsr, CHANGE);
+
+    xTaskCreate(
+        longPressISR, /* Function to implement the task */
+        "ButtonIsr",  /* Name of the task */
+        10000,        /* Stack size in words */
+        NULL,         /* Task input parameter */
+        0,            /* Priority of the task */
+        &buttonTask); /* Task handle. */
 
     /* Anmelden der beiden Pins (ENCA, ENCB) bei dem Treiber für den Encoder. Siehe Anleitung des Encoder-Treibers
        https://github.com/madhephaestus/ESP32Encoder
