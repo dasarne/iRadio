@@ -54,20 +54,13 @@ void stopPlaying()
 void connectCurrentStation()
 {
 
-  /* Wenn grade ein Stream läuft, dann nicht nochmal versuchen zu verbinden.
-  Soll ein andere Stream gespielt werden bitte stopPlaying aufrufen.
-  */
-  if (audio.getBitRate() != 0)
-  {
-    return;
-  }
-
   // Auslesen der aktuell ausgewählten Station und Ermittlung der zugehörigen url
   String url = getCurrentStation().url;
 
   // Die url ist in einem `String` abgelegt. `connecttohost()` braucht aber ein `char *`
   // Holen eines Speichers
   unsigned int urlLen = url.length();
+  
   char urlCharArr[urlLen + 1]; // +1 wegen der Null am Ende eines Strings
   // Konvertierung
   url.toCharArray(urlCharArr, urlLen + 1);
@@ -116,7 +109,7 @@ void loopAudioLautst()
  */
 void audio_showstreamtitle(const char *theStreamTitle)
 {
-  String name = String(theStreamTitle);
+  String name = extraChar(String(theStreamTitle));
   uint8_t p = name.indexOf(" - "); // between artist & title
   if (p == 0)
   {
@@ -137,6 +130,9 @@ void audio_showstreamtitle(const char *theStreamTitle)
 void audio_showstation(const char *theStation)
 {
   // Den gefundenen Musiker-Namen in die 2 Zeile (da 0 das erste Element in 1) des Stream-Screens schreiben
+  // Der Name des Senders wird auch in den Streaming-Daten übertragen. Leider ist das oft nicht gut gepflegt.
   // streamingScreen.setText(String(theStation), 1);
+  // Deshalb nehmen wir den Namen, den der Benutzer für den Stream vergeben hat. Dann kann der sich auch frei entscheiden,
+  // welchen eer da sehen will.
   streamingScreen.setText(getCurrentStation().name, 1);
 }

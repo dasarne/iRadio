@@ -18,7 +18,11 @@
 static const char *TAG = "DISPLAY";
 
 StreamingScreen streamingScreen;
+SelectScreen selectScreen;
+TestScreen testScreen;
+
 RadioEncoder iEncoder;
+Settings settings;
 
 /** @name Verbindungen für das Display.
  *
@@ -41,12 +45,7 @@ constexpr uint8_t RESET_PIN = 33;  ///< Pin, mit dem das Display zurückgesetzt 
 RW1073 lcd(SSD_SS, SSD_MISO, SSD_MOSI, SSD_SCK, RESET_PIN); ///< Treiber für das Display
 /// @}
 
-int currentStation; // Stations-Index
-int stationIndex = 0;
-int lcdMenue = 0;
-int selectStation;
 char headingText[] = "iRadio";
-char delimiter[] = "-";
 
 iRadioStations nvmStations;
 char showConnection = SHOW_CONN_UDEF;
@@ -83,12 +82,11 @@ uint8_t speaker[8] = {0x3, 0x5, 0x19, 0x11, 0x19, 0x5, 0x3, 0x0};
 
 Station getCurrentStation()
 {
-    return getStation(currentStation);
+    return getStation(settings.getCurrentStation());
 }
 
 /**
  * @brief Zeigt den Namen der aktuell ausgewählten Station auf dem Display an
- * **ToDo:** Auch das könnte größer als das Display sein und muss dan scrollen.
  */
 void showStation()
 {
@@ -110,10 +108,36 @@ void initDisplayHardware()
 
     // ###### Inialisierung des Displays ######
     lcd.begin(); // default 20*4
-    lcd.cursorOff();
 
     // Einlesen aller Stations-Indizes
     nvmStations.getStations(stationKeys);
+}
+
+/**
+ * @brief Dem Benutzer die Möglichkeit geben, einen anderen Sender auszuwählen
+ */
+void selectNewStation()
+{
+    u_int8_t anz = nvmStations.getAnzahlStations();
+    String sender[anz + 1];
+
+    // Überschrift festlegen
+    sender[0] = extraChar("Sender auswählen");
+
+    // Aufbau der Liste mit allen Sendern
+    for (int stationNr = 0; stationNr < anz; stationNr++)
+        sender[stationNr + 1] = getStation(stationNr).name;
+
+    // Neuen Sender auswählen
+    u_int8_t currentStation = settings.getCurrentStation();
+
+    currentStation = selectScreen.showScreen(sender, anz, currentStation);
+
+    // Schreibt die neue Station in den NVM
+    settings.setCurrentStation(currentStation);
+
+    // -- Den Sender wechseln --
+    connectCurrentStation();
 }
 
 TaskHandle_t displayTask;
@@ -128,11 +152,29 @@ void displayTimer(void *pvParameters)
     // Endlosschleife: Kein Ende des Display-Management vorgesehen.
     while (true)
     {
-        streamingScreen.setText(headingText,0);
+        // Immer wieder den Cursor abschalten.
+        lcd.cursorOff();
 
-        // Defaultmäßig die Streamingansicht anzeigen. 
+        // Die erste Zeile beinhaltet den Projekt-Text. Alle weiteren Zeilen werden von dem Audio-Stream gefüllt und aktuell gehalten.
+        streamingScreen.setText(headingText, 0);
+
+        // Nicht alle Sender senden einen Stationsnamen. Deshalb setzen wir hier den Namen erstmal aus dem Speicher.
+        streamingScreen.setText(getCurrentStation().name, 1);
+
+        // Defaultmäßig die Streamingansicht anzeigen.
         EncoderState state = streamingScreen.showScreen();
-        LOG_DEBUG(TAG, "State:" << state);
+        switch (state)
+        {
+        case rotation:
+            // testScreen.showScreen();
+            selectNewStation();
+            break;
+        case longPress:
+        case shortPress:
+        default:
+            break;
+        }
+
         delay(1000);
     }
 }
@@ -146,8 +188,6 @@ void displayTimer(void *pvParameters)
  */
 void setupDisplay()
 {
-    currentStation = 24;
-
     // Die Display-Hardware vorbereiten
     initDisplayHardware();
 
@@ -166,8 +206,8 @@ void setupDisplay()
 /**
  * @brief Hilfsmethode, die aus der Codierung UTF-8 die spezifische Codierung
  * für das Display macht. Nur so werden die Sonderzeichen richtig angezeigt.
- * **Wichtig:** Die ganze Applikation arbeitet mit UTF-8. Erst kurz bevor die Texte dargestellt
- * werden sollen werden sie für das Display umkodiert.
+ * **Wichtig:** Es muss sobald wie möglich in die Codierung des Displays umgerechnet werden, weil
+ * die String-Methoden (length, substring,...) nicht UTF-8 kompatibel sind.
  * @param text Text in UTF-8
  * @return String Konvertierter Text.
  */
@@ -252,19 +292,21 @@ String extraChar(String text)
 void writeZeile(String text, u_int8_t y)
 {
     lcd.setPos(0, y);
-    u_int8_t len = text.length();
+    String out = extraChar(text);
+
+    u_int8_t len = out.length();
 
     // Ziel ist es einen Text zu erzeugen, der genau 20 Zeichen lang ist.
     String fittingText;
     if (len < 20)
         // Ist der String kleiner als 20 Zeichen, würde der Rest von dem vorherigen Text stehen bleiben.
         // Deshalb Leerzeichen anhängen 20 Zeichen breites Nichts ausgeben
-        fittingText = text + String("                    ").substring(0, 20 - text.length());
+        fittingText = out + String("                    ").substring(0, 20 - out.length());
     else
-        fittingText = text.substring(0, 20);
+        fittingText = out.substring(0, 20);
 
     // Jetzt kommt der Text auf das Display
-    lcd.print(extraChar(fittingText));
+    lcd.print(fittingText);
 };
 
 /**

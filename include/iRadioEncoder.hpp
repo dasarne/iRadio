@@ -30,16 +30,25 @@ private:
     ESP32Encoder encoder;
 public:
     int encoderPosition;
+    
     /**
      * @brief Initialisieren der Encoder Hardware
      */
     void init();
+
     /**
      * @brief Ließt die aktuelle Position des Encoders aus
      * 
      * @return EncoderState Hat sich etwas am Encoder getan?
      */
     EncoderState refreshPosition();
+
+    /**
+     * @brief Setzt die aktuelle Position des Encoders
+     * 
+     * @param pos 
+     */
+    void setEncoder(u_int8_t pos);
 };
 
 #endif // IRADIOENCODER_HPP_

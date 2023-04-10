@@ -16,11 +16,11 @@ void Screen::setText(String textDerZeile, uint8_t zeilenNr)
     scroll[zeilenNr] = 0;
 }
 
-String Screen::calcScrollString(uint8_t zeilenNr)
+String Screen::calcScrollString(uint8_t zeilenNr, uint8_t lineLength)
 {
     String zeile = zeilen[zeilenNr];
     uint8_t len = zeile.length();
-    if (len > 20)
+    if (len > lineLength)
     {
         // Haben wir das Ende des Strings erreicht?
         if (scroll[zeilenNr]++ == len)
@@ -31,7 +31,7 @@ String Screen::calcScrollString(uint8_t zeilenNr)
         und dann erst der Ausschnitt gebildet.
         da writeText selber zuschneidet wird hier das Ende nicht berechnet sondern auf den Maximalwert gesetzt.
         */
-        return (zeile + " / " + zeile).substring(scroll[zeilenNr], INT16_MAX);
+        return (zeile + " / " + zeile).substring(scroll[zeilenNr], scroll[zeilenNr]+lineLength);
     }
-    return zeile;
+    return zeile+String("                   ").substring(0,lineLength-len);
 }

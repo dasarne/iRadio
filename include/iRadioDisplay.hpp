@@ -15,8 +15,10 @@
 #include <Arduino.h>
 #include <lcd_esp.h>
 #include <ESP32Encoder.h>
-#include <iRadioStations.hpp>
+#include <iRadioPreferences.hpp>
 #include <streamingScreen.hpp>
+#include <selectScreen.hpp>
+#include <testScreen.hpp>
 #include <iRadioEncoder.hpp>
 
 #include <log.h>
@@ -31,19 +33,6 @@ extern StreamingScreen streamingScreen;
 #define ENCB 16  ///< Pin B der Encoder-Verbindung
 #define ENCBUT 4 ///< Switch-Pin des Encoders (der ist _normally closed_ und muss deshalb bei `digitalRead()` invertiert werden)
 
-extern bool buttonPressed;
-extern bool buttonState;
-extern int currentStation; // Stations-Index
-extern int stationIndex;
-extern int oldStation;
-extern int lcdMenue;
-extern int scrollCount;
-extern unsigned long ticker;
-extern unsigned long debounce;
-extern int selectStation;
-extern char headingText[];
-extern char delimiter[];
-extern uint8_t speaker[];
 extern RW1073 lcd;
 extern RadioEncoder iEncoder;
 
@@ -70,7 +59,7 @@ Station getCurrentStation();
 
 void setupDisplay();
 
-
+String extraChar(String text);
 
 /**
  * @brief Die Liste alle Keys (Indizes im NVM).

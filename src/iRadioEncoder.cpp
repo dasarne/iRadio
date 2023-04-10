@@ -1,4 +1,5 @@
 #include <iRadioDisplay.hpp>
+#include <iRadioEncoder.hpp>
 
 #define LONG_PRESS_TIME 500 ///< Zeit in [ms] die gewartet wird, um einen lang gedrückten Button zu erkennen.
 
@@ -7,7 +8,7 @@ static const char *TAG = "ENCODER";
 
 EncoderState buttonStatus = EncoderState::nothing;
 
-unsigned long last_button_time = 0; ///< Globale Variable, um den zeitlichen Abstand zwischen Drücken und Loslassen des Encoderbuttons zu messen [ms] 
+unsigned long last_button_time = 0; ///< Globale Variable, um den zeitlichen Abstand zwischen Drücken und Loslassen des Encoderbuttons zu messen [ms]
 
 /**
  * @brief Timer, der bei lange gedrückter Taste die Auswertung abbricht und den Status `EncoderState::longPress` setzt.
@@ -67,7 +68,9 @@ void IRAM_ATTR buttonIsr()
 
     // Wenn der Knopf gedrückt wurde, wird die Zeit gespeichert. Damit wird das Signal gesetzt, das ein Event beim Knopf loslassen ausgewertet werden muss
     if (pin_state == LOW)
+    {
         last_button_time = button_time;
+    }
 }
 
 TaskHandle_t buttonTask;
@@ -129,4 +132,9 @@ EncoderState RadioEncoder::refreshPosition()
     encoderPosition = newPostion;
 
     return retVal;
+}
+
+void RadioEncoder::setEncoder(u_int8_t pos)
+{
+    encoder.setCount(pos);
 }

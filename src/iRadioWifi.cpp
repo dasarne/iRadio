@@ -16,8 +16,8 @@
 static const char *TAG = "WIFI";
 
 // Provisorisch: Hier sind die Wifi Credentials
-String ssid = "jimWifi";
-String password = "KeineAhnung";
+String ssid = "Schneider18";
+String password = "rabarbara";
 TaskHandle_t wifiTask;
 
 /**
@@ -29,16 +29,25 @@ void wifiTimer(void *pvParameters)
     // Timer, der versucht, sich im WLAN anzumelden
     while (true)
     {
-        delay(1000);
-        if (WiFi.status() != WL_CONNECTED)
+        // Warten bis eine Verbindung steht
+        while (WiFi.status() != WL_CONNECTED)
         {
+            //Anzeigen das keine Verbindung steht. Das wird im StreamScreen ausgewertet
             showConnection = SHOW_CONN_NONE;
+            delay(1000);
         }
-        else
+
+        // Wenn WLAN da ist, den Stream starten
+        connectCurrentStation();
+
+        // Warten bis WLAN weg ist
+        while (WiFi.status() == WL_CONNECTED)
         {
             showConnection = SHOW_CONN_WLAN;
-            connectCurrentStation();
+            delay(1000);
         }
+        
+        //... um dann erneut zu versuchen eine Verbindung wieder aufzubauen.
     }
 }
 

@@ -15,6 +15,7 @@
 #include <iRadioEncoder.hpp>
 
 #define SCROLL_DELAY 200 ///< Zeit zwischen den Scroll Darstellungen in [ms]. Je kleiner der Wert, desto schneller scrollt der Text.
+#define ESCAPE_DELAY 20000 ///< Zeit in [ms] die man abwarten muss, um ohne Änderung aus dem Dialog wieder rauszugehen.
 
 /**
  * @brief Basisklasse für alle Screens kümmert sich um das Scrolling
@@ -32,7 +33,7 @@ protected:
      * @param zeilen String der in der Zeile gezeigt werden soll 
      * @return String 
      */
-    String calcScrollString(uint8_t zeilenNr);
+    String calcScrollString(uint8_t zeilenNr,u_int8_t lineLength=20);
 
 public:
 
