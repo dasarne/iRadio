@@ -20,8 +20,11 @@
 static const char *TAG = "WIFI";
 
 // Provisorisch: Hier sind die Wifi Credentials
-String ssid = "Schneider18";
-String password = "rabarbara";
+String ssid = "jimWifi";
+String password = "KeineAhnung";
+
+AsyncWebServer server(80);
+DNSServer dns;
 
 /* Defines für den NTP Client um die aktuelle Zeit auszulesen.
  * Weitere Informationen zu NTP: https://de.wikipedia.org/wiki/Network_Time_Protocol
@@ -40,27 +43,32 @@ void wifiTimer(void *pvParameters)
     // Timer, der versucht, sich im WLAN anzumelden
     while (true)
     {
+        LOG_DEBUG(TAG, "wifiTimer running on core:" << xPortGetCoreID());
+
+        LOG_DEBUG(TAG, "wifiTimer:NOT connected");
         // Warten bis eine Verbindung steht
-        while (WiFi.status() != WL_CONNECTED)
+        while (!WiFi.isConnected())
         {
             // Anzeigen das keine Verbindung steht. Das wird im StreamScreen ausgewertet
             showConnection = SHOW_CONN_NONE;
             delay(1000);
         }
+        LOG_DEBUG(TAG, "wifiTimer:connected");
 
         // In diesem Bereich ist des ESP mit dem Internet verbunden
 
         // Also los, den Stream starten, der Benutzer will was hören ;-)
         connectCurrentStation();
-
+        LOG_DEBUG(TAG, "wifiTimer:Timer");
         // Wie spät ist es eigentlich? Auch die aktuelle Zeit holen wir uns hier.
-        while (!timeClient.update())
+        if (!timeClient.update())
         {
             timeClient.forceUpdate();
         }
-        
+        LOG_DEBUG(TAG, "wifiTimer:Timer connected");
+
         // Warten bis WLAN weg ist
-        while (WiFi.status() == WL_CONNECTED)
+        while (WiFi.isConnected())
         {
             showConnection = SHOW_CONN_WLAN;
             delay(1000);
@@ -81,19 +89,20 @@ void setupWifi()
 
     // Verbindung zum WLAN aufbauen
     WiFi.begin(ssid.c_str(), password.c_str());
-    WiFiManager wm;
+
+    AsyncWiFiManager wifiManager(&server, &dns);
 
     // wm.resetSettings();
     bool res;
 
     // res = wm.autoConnect(); // auto generated AP name from chipid
     // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
-    res = wm.autoConnect("CampusRadioAP"); // password protected ap
+    res = wifiManager.autoConnect("CampusRadioAP"); // password protected ap
+
     if (!res)
     {
         Serial.println("failed to connect!!");
         ESP.restart();
-        delay(2000);
     }
 
     /* Initialisieren des NTP-Client. Eine gute Anleitung findet sich hier:
@@ -106,7 +115,7 @@ void setupWifi()
     // GMT +8 = 28800
     // GMT -1 = -3600
     // GMT 0 = 0
-    timeClient.setTimeOffset(2*3600);
+    timeClient.setTimeOffset(2 * 3600);
 
     // Thread der versucht eine WLAN-Verbindung aufzubauen.
     xTaskCreate(

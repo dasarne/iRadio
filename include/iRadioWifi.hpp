@@ -13,8 +13,9 @@
 #define IRADIOWIFI_HPP_
 
 #include <Arduino.h>
-#include "WiFi.h"
-#include "WiFiManager.h"
+#include <WiFi.h>
+#include <ESPAsyncWebServer.h>
+#include <ESPAsyncWiFiManager.h>         //https://github.com/tzapu/WiFiManager
 
 // Fürs NTP
 #include <NTPClient.h>

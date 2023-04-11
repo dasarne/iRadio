@@ -85,13 +85,13 @@ uint8_t SelectScreen::showScreen(String options[], u_int8_t optionsSize, u_int8_
                 String(linePointer[2]) + calcScrollString(2, 19),
                 String(linePointer[3]) + calcScrollString(3, 19));
 
-        delay(50);
-
         u_int8_t aktPos = iEncoder.encoderPosition;
 
         // Warten und dabei den Encoder abfragen
         for (unsigned long t = millis(); millis() - t < SCROLL_DELAY;)
         {
+            delay(50);
+
             // Sich die Position des Encoders merken.
             aktState = iEncoder.refreshPosition();
 

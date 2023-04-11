@@ -34,6 +34,7 @@ EncoderState StreamingScreen::showScreen()
         // Warten und dabei den Encoder abfragen
         for (unsigned long t = millis(); millis() - t < SCROLL_DELAY;)
         {
+            delay(100);
             aktState = iEncoder.refreshPosition();
             if (aktState != EncoderState::nothing)
                 return aktState;

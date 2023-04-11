@@ -148,7 +148,8 @@ TaskHandle_t displayTask;
  */
 void displayTimer(void *pvParameters)
 {
-
+    LOG_DEBUG(TAG, "displayTimer running on core:" << xPortGetCoreID());
+    
     // Endlosschleife: Kein Ende des Display-Management vorgesehen.
     while (true)
     {

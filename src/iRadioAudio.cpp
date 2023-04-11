@@ -29,8 +29,6 @@ constexpr uint8_t I2S_LRC = 26;  ///< Word-Select-Leitung (WS)
 Audio audio;
 constexpr uint8_t volume_max = 20;
 constexpr uint8_t PRE = 25;
-int showTime = 0;
-bool audioIsPlaying = false;
 int volume = 0;
 
 // Oldvolume muss ungleich Volume sein, damit initial die Lautstärke gesetzt wird.
@@ -40,11 +38,6 @@ int encPulses, oldPulses;
 void audio_info(const char *info)
 {
   LOG_DEBUG(TAG, "Audio_Info: " << info);
-}
-
-void stopPlaying()
-{
-  audio.stopSong();
 }
 
 /**
@@ -60,13 +53,16 @@ void connectCurrentStation()
   // Die url ist in einem `String` abgelegt. `connecttohost()` braucht aber ein `char *`
   // Holen eines Speichers
   unsigned int urlLen = url.length();
-  
+
   char urlCharArr[urlLen + 1]; // +1 wegen der Null am Ende eines Strings
   // Konvertierung
   url.toCharArray(urlCharArr, urlLen + 1);
 
   // Aufruf
-  audio.connecttohost(urlCharArr);
+  bool status = audio.connecttohost(urlCharArr);
+
+  LOG_DEBUG(TAG, "Status:" << (status ? "T" : "F"));
+  LOG_DEBUG(TAG, "connectCurrentStation running on core:" <<xPortGetCoreID());
 }
 
 /**
