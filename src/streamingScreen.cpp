@@ -11,8 +11,15 @@ EncoderState StreamingScreen::showScreen()
 
     while (true)
     {
+        /* Den Kopf des Screens berechnen.
+         * Er ist die Info-Zentrale außerhalb der Stream-Informationen:
+         * - Projektname
+         * - Uhrzeit/Datum
+         * - Verbindungszustand
+         */
         // In die erste Zeile muss noch der Statuseingefügt werden
-        String head = calcScrollString(0)+"                       ";
+        String head = getText(0) + "    " + timeClient.getFormattedTime()+"   ";
+
         head.setCharAt(19, showConnection);
 
         // Text ausgeben

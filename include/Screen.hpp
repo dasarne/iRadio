@@ -41,11 +41,17 @@ public:
      * @brief Schreiben einer Zeile in das Display. Mit dem Setzen des Textes wird das vielleicht nötige Scrolling berechnet. 
      * Die Zeile beginnt dann von vorne. 
      * 
-     * @param textDerZeile Text, der in der Zeile dargestellt werden soll (in UTF-8)
+     * @param textDerZeile Text, der in der Zeile dargestellt werden soll 
      * @param zeilenNr In welcher Zeile soll der Text dargestellt werden?
      */
     void setText(String textDerZeile,uint8_t zeilenNr);
-
+    /**
+     * @brief Lesen einer Zeile aus dem Display. 
+     * 
+     * @param zeilenNr Aus welcher Zeile soll der Text gelesen werden?
+     * @return String Der gefundene Text
+     */
+    String getText(uint8_t zeilenNr);
     /**
      * @brief Zeigt den Screen. Der Screen bleibt solange sichtbar, bis der Nutzer an dem RadioEncoder einen Event auslöst.
      * 

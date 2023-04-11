@@ -16,6 +16,12 @@
 #include "WiFi.h"
 #include "WiFiManager.h"
 
+// Fürs NTP
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+
 void setupWifi();
+
+extern NTPClient timeClient;
 
 #endif // IRADIOWIFI_HPP_

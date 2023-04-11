@@ -20,6 +20,7 @@
 #include <selectScreen.hpp>
 #include <testScreen.hpp>
 #include <iRadioEncoder.hpp>
+#include <iRadioWifi.hpp>
 
 #include <log.h>
 

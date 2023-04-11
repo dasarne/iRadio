@@ -1,5 +1,6 @@
 #include <iRadioDisplay.hpp>
 #include <log.h>
+#include "Screen.hpp"
 
 // Logging-Tag für Easy-Logger
 static const char *TAG = "SCREEN";
@@ -14,6 +15,11 @@ void Screen::setText(String textDerZeile, uint8_t zeilenNr)
 
     zeilen[zeilenNr] = textDerZeile;
     scroll[zeilenNr] = 0;
+}
+
+String Screen::getText(uint8_t zeilenNr)
+{
+    return zeilen[zeilenNr];
 }
 
 String Screen::calcScrollString(uint8_t zeilenNr, uint8_t lineLength)

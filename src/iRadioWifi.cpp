@@ -1,6 +1,10 @@
+// Für Wifi
 #include <iRadioWifi.hpp>
-#include <iRadioDisplay.hpp>
+// Fürs Streaming
 #include <iRadioAudio.hpp>
+
+// Für die Anbindung an das Radio
+#include <iRadioDisplay.hpp>
 
 /**
  * @file iRadioWifi.cpp
@@ -18,6 +22,13 @@ static const char *TAG = "WIFI";
 // Provisorisch: Hier sind die Wifi Credentials
 String ssid = "Schneider18";
 String password = "rabarbara";
+
+/* Defines für den NTP Client um die aktuelle Zeit auszulesen.
+ * Weitere Informationen zu NTP: https://de.wikipedia.org/wiki/Network_Time_Protocol
+ */
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP);
+
 TaskHandle_t wifiTask;
 
 /**
@@ -32,21 +43,29 @@ void wifiTimer(void *pvParameters)
         // Warten bis eine Verbindung steht
         while (WiFi.status() != WL_CONNECTED)
         {
-            //Anzeigen das keine Verbindung steht. Das wird im StreamScreen ausgewertet
+            // Anzeigen das keine Verbindung steht. Das wird im StreamScreen ausgewertet
             showConnection = SHOW_CONN_NONE;
             delay(1000);
         }
 
-        // Wenn WLAN da ist, den Stream starten
+        // In diesem Bereich ist des ESP mit dem Internet verbunden
+
+        // Also los, den Stream starten, der Benutzer will was hören ;-)
         connectCurrentStation();
 
+        // Wie spät ist es eigentlich? Auch die aktuelle Zeit holen wir uns hier.
+        while (!timeClient.update())
+        {
+            timeClient.forceUpdate();
+        }
+        
         // Warten bis WLAN weg ist
         while (WiFi.status() == WL_CONNECTED)
         {
             showConnection = SHOW_CONN_WLAN;
             delay(1000);
         }
-        
+
         //... um dann erneut zu versuchen eine Verbindung wieder aufzubauen.
     }
 }
@@ -76,6 +95,18 @@ void setupWifi()
         ESP.restart();
         delay(2000);
     }
+
+    /* Initialisieren des NTP-Client. Eine gute Anleitung findet sich hier:
+     * https://randomnerdtutorials.com/esp32-ntp-client-date-time-arduino-ide/
+     */
+    // Initialize a NTPClient to get time
+    timeClient.begin();
+    // Set offset time in seconds to adjust for your timezone, for example:
+    // GMT +1 = 3600
+    // GMT +8 = 28800
+    // GMT -1 = -3600
+    // GMT 0 = 0
+    timeClient.setTimeOffset(2*3600);
 
     // Thread der versucht eine WLAN-Verbindung aufzubauen.
     xTaskCreate(
