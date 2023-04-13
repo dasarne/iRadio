@@ -14,6 +14,7 @@
 #include <Arduino.h>
 #include <Audio.h>
 #include <ESP32Encoder.h>
+#include <BluetoothA2DP.h>
 
 /** @name Lautsprecher Steuerung
  */
@@ -50,6 +51,12 @@ void loopAudioLautst();
  * Wenn bereits ein Stream läuft, wird kein Stream gespielt.
  */
 void connectCurrentStation();
+
+/**
+ * @brief Versucht einen Connect mittels Bluetooth
+ * 
+ */
+void connectBT();
 
 /**
  * @brief Der Stream wird gestoppt.

@@ -129,7 +129,17 @@ public:
      */
     u_int8_t getAnzahlStations();
 };
-
+/**
+ * @brief Welche Verbindung soll aufgebaut werden?
+ */
+enum WhatConnection {
+    internet, 
+    bluetooth
+};
+/**
+ * @brief Klasse, die die Speicherung der Einstellungen kapselt.
+ * 
+ */
 class Settings
 {
 private:
@@ -139,8 +149,28 @@ private:
     const char *prefNamespace = "Prefs";
 
 public:
+    /**
+     * @brief Getter für die aktuell ausgewählte Station
+     * @return u_int8_t Der Schlüssel, mit dem die Station abgespeichert ist.
+     */
     u_int8_t getCurrentStation();
+    /**
+     * @brief Setter eines Current Station Objekts
+     * 
+     * @param theStation 
+     */
     void setCurrentStation(u_int8_t theStation);
+    /**
+     * @brief Aus welcher Verbindung soll die Musik kommen? 
+     * 
+     * @return WhatConnection Die aktuell gewählte Verbindungsart. 
+     */
+    WhatConnection getWhatConnection();
+    /**
+     * @brief Setter eines What Connection Objekts
+     * 
+     */
+    void setWhatConnection(WhatConnection wc);
 };
 
 

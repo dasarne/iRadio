@@ -139,6 +139,37 @@ void selectNewStation()
     // -- Den Sender wechseln --
     connectCurrentStation();
 }
+/**
+ * @brief Dem Benutzer die Möglichkeit geben, zwischen Bluetooth und Internetradio zu wechseln
+ */
+void selectQuelle()
+{
+
+    // Bildschirminhalt vorbereiten
+    String selection[3];
+
+    // Überschrift festlegen
+    selection[0] = extraChar("Quelle auswählen");
+    selection[1] = extraChar("Internetradio");
+    selection[2] = extraChar("Bluetooth");
+
+    // Neue Quelle auswählen
+    WhatConnection currentWhatConnection = settings.getWhatConnection();
+    currentWhatConnection = static_cast<WhatConnection>(selectScreen.showScreen(selection, 3, currentWhatConnection));
+
+    switch (currentWhatConnection)
+    {
+    case internet:
+        connectCurrentStation();
+        break;
+    case bluetooth:
+        connectBT();
+        break;
+
+    default:
+        break;
+    }
+}
 
 TaskHandle_t displayTask;
 
@@ -149,7 +180,7 @@ TaskHandle_t displayTask;
 void displayTimer(void *pvParameters)
 {
     LOG_DEBUG(TAG, "displayTimer running on core:" << xPortGetCoreID());
-    
+
     // Endlosschleife: Kein Ende des Display-Management vorgesehen.
     while (true)
     {
@@ -172,6 +203,7 @@ void displayTimer(void *pvParameters)
             break;
         case longPress:
         case shortPress:
+            selectQuelle();
         default:
             break;
         }

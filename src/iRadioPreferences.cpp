@@ -236,7 +236,7 @@ u_int8_t Settings::getCurrentStation()
     iRadioPrefs.begin(prefNamespace, false);
     u_int8_t retVal = iRadioPrefs.getChar("S", 1);
     iRadioPrefs.end();
-    LOG_DEBUG(TAG,"getCurrentStation:"<<retVal);
+    LOG_DEBUG(TAG, "getCurrentStation:" << retVal);
     return retVal;
 }
 
@@ -244,8 +244,27 @@ void Settings::setCurrentStation(u_int8_t theStation)
 {
     iRadioPrefs.begin(prefNamespace, false);
 
-    LOG_DEBUG(TAG,"setCurrentStation:"<<theStation);
+    LOG_DEBUG(TAG, "setCurrentStation:" << theStation);
 
     iRadioPrefs.putChar("S", theStation);
+    iRadioPrefs.end();
+}
+
+WhatConnection Settings::getWhatConnection()
+{
+    iRadioPrefs.begin(prefNamespace, false);
+    u_int8_t retVal = iRadioPrefs.getChar("WC", WhatConnection::internet);
+    iRadioPrefs.end();
+    LOG_DEBUG(TAG, "getWhatConnection:" << retVal);
+    return static_cast<WhatConnection>(retVal);
+}
+
+void Settings::setWhatConnection(WhatConnection wc)
+{
+    iRadioPrefs.begin(prefNamespace, false);
+
+    LOG_DEBUG(TAG, "setWhatConnection:" << wc);
+
+    iRadioPrefs.putChar("WC", wc);
     iRadioPrefs.end();
 }

@@ -24,9 +24,14 @@ constexpr uint8_t I2S_DOUT = 25; ///< Daten-Leitung (SD)
 constexpr uint8_t I2S_BCLK = 27; ///< Takt-Leitung (SCK)
 constexpr uint8_t I2S_LRC = 26;  ///< Word-Select-Leitung (WS)
 /// @}
-
-// Create audio object
-Audio audio;
+/** @name I²S-Datenquellen
+ * Vom iRadio werden zwei Quellen unterstützt: Bluetooth und Internet-Stream.
+ * Die folgenden Objekte kapseln die zugehörige Ansteuerung.
+ */
+/// @{
+Audio audio;                 ///< Mit dem audio-Objekt wird der Internet-Stream gelesen und an die I2S-Hardware geschickt.
+BluetoothA2DPSink a2dp_sink; ///< Über a2dp_sink-Objekt wird eine Bluetooth-Box simuliert. Die Daten werden über das A2DP-Profile übermittelt und an die I2S-Hardware geschickt. [siehe](https://de.wikipedia.org/wiki/A2DP)
+                             /// @}
 constexpr uint8_t volume_max = 20;
 constexpr uint8_t PRE = 25;
 int volume = 0;
@@ -62,7 +67,24 @@ void connectCurrentStation()
   bool status = audio.connecttohost(urlCharArr);
 
   LOG_DEBUG(TAG, "Status:" << (status ? "T" : "F"));
-  LOG_DEBUG(TAG, "connectCurrentStation running on core:" <<xPortGetCoreID());
+  LOG_DEBUG(TAG, "connectCurrentStation running on core:" << xPortGetCoreID());
+}
+
+void avrc_metadata_callback(uint8_t data1, const u_int8_t *data2)
+{
+  LOG_DEBUG(TAG, "AVRC metadata rsp: attribute id " << data1 << " Text:" << (char *)data2);
+}
+
+void connectBT()
+{
+  i2s_pin_config_t my_pin_config = {
+      .bck_io_num = 26,
+      .ws_io_num = 25,
+      .data_out_num = 22,
+      .data_in_num = I2S_PIN_NO_CHANGE};
+  a2dp_sink.set_pin_config(my_pin_config);
+  a2dp_sink.set_avrc_metadata_callback(avrc_metadata_callback);
+  a2dp_sink.start("iRadio");
 }
 
 /**
@@ -81,6 +103,35 @@ void setupAudio()
   digitalWrite(MUTE, LOW);
 }
 
+/** @name Ringpuffer
+ * Puffer um einen Tiefpass-Filter bei dem Poti zu realisieren.
+ * Es werden `buffersize` Werte gespeichert und der Mittelwert davon gebildet.
+ * @{
+ */
+constexpr uint8_t buffersize = 10;
+uint8_t ringpuffer[buffersize];
+uint8_t bufferPointer = 0;
+
+void addValue(uint8_t value)
+{
+  bufferPointer++;
+  if (bufferPointer == buffersize)
+    bufferPointer = 0;
+  ringpuffer[bufferPointer] = value;
+}
+
+uint8_t getMeanValue()
+{
+  uint16_t sum = 0;
+  for (uint8_t i = 0; i < buffersize; i++)
+  {
+    sum += ringpuffer[i];
+  }
+
+  return sum / buffersize;
+}
+/// @}
+
 /**
  * @brief Regelmäßiges Aktualisieren der Audio-Einstellungen.
  *
@@ -91,11 +142,9 @@ void loopAudioLautst()
   volume = analogRead(VOL);
   volume = map(volume, 0, 1023, 0, volume_max);
 
-  if (volume != oldVolume)
-  {
-    audio.setVolume(volume);
-    oldVolume = volume;
-  }
+  addValue(volume);
+
+  audio.setVolume(getMeanValue());
 }
 
 /**
