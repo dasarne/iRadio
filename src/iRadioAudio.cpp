@@ -31,10 +31,6 @@ constexpr uint8_t volume_max = 20;
 constexpr uint8_t PRE = 25;
 int volume = 0;
 
-// Oldvolume muss ungleich Volume sein, damit initial die Lautstärke gesetzt wird.
-int oldVolume = -1;
-int encPulses, oldPulses;
-
 void audio_info(const char *info)
 {
   LOG_DEBUG(TAG, "Audio_Info: " << info);
@@ -81,6 +77,35 @@ void setupAudio()
   digitalWrite(MUTE, LOW);
 }
 
+/** @name Ringpuffer
+ * Puffer um einen Tiefpass-Filter bei dem Poti zu realisieren.
+ * Es werden `buffersize` Werte gespeichert und der Mittelwert davon gebildet.
+ * @{
+ */
+constexpr uint8_t buffersize = 10;
+uint8_t ringpuffer[buffersize];
+uint8_t bufferPointer = 0;
+
+void addValue(uint8_t value)
+{
+  bufferPointer++;
+  if (bufferPointer == buffersize)
+    bufferPointer = 0;
+  ringpuffer[bufferPointer] = value;
+}
+
+uint8_t getMeanValue()
+{
+  uint16_t sum = 0;
+  for (uint8_t i = 0; i < buffersize; i++)
+  {
+    sum += ringpuffer[i];
+  }
+
+  return sum / buffersize;
+}
+/// @}
+
 /**
  * @brief Regelmäßiges Aktualisieren der Audio-Einstellungen.
  *
@@ -91,13 +116,10 @@ void loopAudioLautst()
   volume = analogRead(VOL);
   volume = map(volume, 0, 1023, 0, volume_max);
 
-  if (volume != oldVolume)
-  {
-    audio.setVolume(volume);
-    oldVolume = volume;
-  }
-}
+  addValue(volume);
 
+  audio.setVolume(getMeanValue());
+}
 /**
  * @brief Implementiert eine `weak` gebundene Methode der Audio-Klasse (Infos dazu gibt es [hier](https://en.wikipedia.org/wiki/Weak_symbol))
  * Diese Methode wird aufgerufen, wenn ein neues Stück gespielt wird. Sie gibt den Interpreten und den Titel des Stückes zurück.
