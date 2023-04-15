@@ -22,7 +22,6 @@ SelectScreen selectScreen;
 TestScreen testScreen;
 
 RadioEncoder iEncoder;
-Settings settings;
 
 /** @name Verbindungen für das Display.
  *

@@ -130,6 +130,12 @@ public:
     u_int8_t getAnzahlStations();
 };
 
+struct WifiCredential
+{
+    String ssid;
+    String psk;
+};
+
 class Settings
 {
 private:
@@ -143,5 +149,6 @@ public:
     void setCurrentStation(u_int8_t theStation);
 };
 
+extern Settings settings;
 
 #endif // IRADIOPREFERENCES_HPP_

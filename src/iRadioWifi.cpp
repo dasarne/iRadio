@@ -19,12 +19,9 @@
 // Logging-Tag für Easy-Logger
 static const char *TAG = "WIFI";
 
-// Provisorisch: Hier sind die Wifi Credentials
-String ssid = "jimWifi";
-String password = "KeineAhnung";
-
 AsyncWebServer server(80);
 DNSServer dns;
+AsyncWiFiManager wifiManager(&server, &dns);
 
 /* Defines für den NTP Client um die aktuelle Zeit auszulesen.
  * Weitere Informationen zu NTP: https://de.wikipedia.org/wiki/Network_Time_Protocol
@@ -33,6 +30,7 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
 
 TaskHandle_t wifiTask;
+
 
 /**
  * @brief Multithreading-Einstieg: Hier wird das Display verwaltet
@@ -55,11 +53,16 @@ void wifiTimer(void *pvParameters)
         }
         LOG_DEBUG(TAG, "wifiTimer:connected");
 
+        // Versuch die WLAN-Verbindung wegzuspeichern.
+        // settings.addWifiCredential(WiFi.SSID(),WiFi.psk());
+
         // In diesem Bereich ist des ESP mit dem Internet verbunden
 
         // Also los, den Stream starten, der Benutzer will was hören ;-)
         connectCurrentStation();
+
         LOG_DEBUG(TAG, "wifiTimer:Timer");
+
         // Wie spät ist es eigentlich? Auch die aktuelle Zeit holen wir uns hier.
         if (!timeClient.update())
         {
@@ -74,32 +77,29 @@ void wifiTimer(void *pvParameters)
             delay(1000);
         }
 
+        // Anzeigen das keine Verbindung steht. Das wird im StreamScreen ausgewertet
+        showConnection = SHOW_CONN_NONE;
+        
         //... um dann erneut zu versuchen eine Verbindung wieder aufzubauen.
+        if (!wifiManager.autoConnect("CampusRadioAP"))
+        {
+            Serial.println("failed to connect!!");
+            ESP.restart();
+        }
     }
 }
 
 void setupWifi()
 {
-
-    // Wifi zurücksetzen
-    WiFi.disconnect();
-
-    // WiFi auf Station mode setzen
-    WiFi.mode(WIFI_STA);
-
     // Verbindung zum WLAN aufbauen
-    WiFi.begin(ssid.c_str(), password.c_str());
+    // reconnect();
 
-    AsyncWiFiManager wifiManager(&server, &dns);
+    /* Für den Fall, dass wir keinen Zugang zum Netzwerk abgespeichert haben wird der Wifimanager gestartet.
+     * Wenn kein Netz mehr da ist, macht der Wifimanager einen AccessPoint auf und bietet unter http://192.168.4.1 ein Webinterface um die
+     * WLAN-Verbindung zu konfigurieren.
+     */
 
-    // wm.resetSettings();
-    bool res;
-
-    // res = wm.autoConnect(); // auto generated AP name from chipid
-    // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
-    res = wifiManager.autoConnect("CampusRadioAP"); // password protected ap
-
-    if (!res)
+    if (!wifiManager.autoConnect("CampusRadioAP"))
     {
         Serial.println("failed to connect!!");
         ESP.restart();

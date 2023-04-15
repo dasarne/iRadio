@@ -1,5 +1,5 @@
 /**
- * @file iRadioLCD.hpp
+ * @file iRadioDisplay.hpp
  * @author Dieter Zumkehr, Arne v.Irmer (Dieter.Zumkehr @ fh-Dortmund.de, Arne.vonIrmer @ tu-dortmund.de)
  * @brief Hier wird alles für den Anteil der sich am das Radio kümmert zusammengefasst
  * @version 0.1

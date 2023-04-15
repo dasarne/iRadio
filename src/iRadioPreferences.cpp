@@ -4,6 +4,8 @@
 // Logging-Tag für Easy-Logger
 static const char *TAG = "PREFS";
 
+Settings settings;
+
 /**
  * @brief Initiale Liste von Stationen. Diese können so, wie sie geschrieben sind direkt in
  * den NVM geschrieben werden.
@@ -41,7 +43,7 @@ String defaultStations[] = {
 Preferences iRadioPrefs;
 
 // Puffer für die Umrechnung
-char key[] = "000";
+char key[] = "0000";
 
 /**
  * @brief Sucht einen freien Index im NVM. Der NVM ist ein Assoziatives Array, dass nach einem Key
@@ -236,7 +238,7 @@ u_int8_t Settings::getCurrentStation()
     iRadioPrefs.begin(prefNamespace, false);
     u_int8_t retVal = iRadioPrefs.getChar("S", 1);
     iRadioPrefs.end();
-    LOG_DEBUG(TAG,"getCurrentStation:"<<retVal);
+    LOG_DEBUG(TAG, "getCurrentStation:" << retVal);
     return retVal;
 }
 
@@ -244,8 +246,9 @@ void Settings::setCurrentStation(u_int8_t theStation)
 {
     iRadioPrefs.begin(prefNamespace, false);
 
-    LOG_DEBUG(TAG,"setCurrentStation:"<<theStation);
+    LOG_DEBUG(TAG, "setCurrentStation:" << theStation);
 
     iRadioPrefs.putChar("S", theStation);
     iRadioPrefs.end();
 }
+
