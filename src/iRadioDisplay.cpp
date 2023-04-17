@@ -125,17 +125,20 @@ How2Continue configReset()
 {
     LOG_DEBUG(TAG, "configReset");
 
-    SelectScreen selectScreen;
-    String configs[] = {
-        extraChar("Reset Werkszustand?"),
-        extraChar("Ja"),
-        extraChar("Nein"),
-        extraChar("Zurück")};
+    OptionScreen resetScreen;
 
-    u_int8_t selection = selectScreen.showScreen(configs, 3, 1);
+    OptionValue resetOpts[] = {
+        {"Nein!", 1},
+        {"Ja: Zurücksetzen", 2},
+        {"Abbrechen", 3},
+        {"", 0}}; // Ende der Liste
+
+    String resetTexts[] = {"Reset Werkszustand?", "", "Willst Du das", "wirklich?"};
+
+    u_int8_t selection = resetScreen.showScreen(resetOpts, 1, resetTexts);
 
     // Ist "Ja" ausgewählt worden?
-    if (selection == 0)
+    if (selection == 2)
     {
         // Den NVM löschen und den ESP neustarten.
         settings.resetNVM();
@@ -159,6 +162,76 @@ How2Continue configInternet()
     return stay;
 }
 
+How2Continue configZeitZone()
+{
+    LOG_DEBUG(TAG, "configZeitZone");
+    OptionScreen zzoneScreen;
+    int8_t zzone = settings.getZeitZone();
+
+    OptionValue zzoneOpts[11 + 14 + 1];
+
+    u_int8_t n = 0, selected = 1;
+
+    for (int8_t i = -11; i < 14; i++, n++)
+    {
+        // Die aktuell ausgewählte Zone finden
+        if (i == zzone)
+        {
+            selected = n;
+        }
+
+        zzoneOpts[n] = {String(i), i};
+    }
+
+    zzoneOpts[n] = {"", 0}; // Ende der Liste
+
+    String zzoneTexts[] = {"Es ist grade", "", "", ""};
+
+    u_int8_t selection = zzoneScreen.showScreen(zzoneOpts, selected, zzoneTexts);
+
+    // Auswerten
+    if (selection == UCHAR_MAX)
+    {
+        return leave;
+    }
+    else
+    {
+        settings.setZeitzone(zzoneOpts[selection].value);
+        return stay;
+    }
+}
+
+How2Continue configSommerZeit()
+{
+    LOG_DEBUG(TAG, "configSommerZeit");
+    OptionScreen sommerScreen;
+    u_int8_t isWinter = settings.getSommerzeit();
+
+    OptionValue sommerOpts[] = {
+        {"Winterzeit", 0},
+        {"Sommerzeit", 1},
+        {"Abbrechen", 2},
+        {"", 0}}; // Ende der Liste
+
+    String sommerTexts[] = {"Es ist grade", "", "", ""};
+
+    u_int8_t selection = sommerScreen.showScreen(sommerOpts, isWinter, sommerTexts);
+
+    // Auswerten
+    switch (selection)
+    {
+    case 0:
+    case 1:
+        settings.setSommerzeit(selection);
+        return stay;
+        break;
+    case 2:
+    case UCHAR_MAX:
+    default:
+        return leave;
+        break;
+    }
+}
 How2Continue configClock()
 {
     LOG_DEBUG(TAG, "configClock");
@@ -170,6 +243,7 @@ How2Continue configClock()
         extraChar("Zurück")};
 
     u_int8_t selection = selectScreen.showScreen(configs, 3, 0);
+
     switch (selection)
     {
     case 0:
