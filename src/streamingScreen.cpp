@@ -8,6 +8,10 @@ static const char *TAG = "STREAM-S";
 EncoderState StreamingScreen::showScreen()
 {
     EncoderState aktState = EncoderState::nothing;
+    
+    scrollSpeed_S=settings.getScrollSpeed();
+
+    LOG_DEBUG(TAG, "scrollSpeed:" << scrollSpeed_S);
 
     while (true)
     {
@@ -17,8 +21,8 @@ EncoderState StreamingScreen::showScreen()
          * - Uhrzeit/Datum
          * - Verbindungszustand
          */
-        // In die erste Zeile muss noch der Statuseingefügt werden
-        String head = getText(0) + "    " + timeClient.getFormattedTime()+"   ";
+        // In die erste Zeile muss noch der Status eingefügt werden
+        String head = getText(0) + "    " + timeClient.getFormattedTime() + "   ";
 
         head.setCharAt(19, showConnection);
 
@@ -32,7 +36,7 @@ EncoderState StreamingScreen::showScreen()
         delay(50);
 
         // Warten und dabei den Encoder abfragen
-        for (unsigned long t = millis(); millis() - t < SCROLL_DELAY;)
+        for (unsigned long t = millis(); millis() - t < scrollSpeed_S;/* nothing */)
         {
             delay(100);
             aktState = iEncoder.refreshPosition();

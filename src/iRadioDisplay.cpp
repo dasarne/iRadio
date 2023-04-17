@@ -194,17 +194,29 @@ How2Continue configDisplay()
 
     SelectScreen selectScreen;
     String configs[] = {
-        extraChar("Anzeige einstellen"),
+        extraChar("----  Anzeige  ----"),
         extraChar("Helligkeit"),
         extraChar("Scrollgeschw."),
         extraChar("Zurück")};
 
     u_int8_t selection = selectScreen.showScreen(configs, 3, 0);
+
+    SpeedScreen speedScreen;
+    u_int8_t newSpeed;
+
     switch (selection)
     {
     case 0:
         break;
     case 1:
+        newSpeed = speedScreen.showScreen();
+        if (newSpeed != UCHAR_MAX)
+        {
+            settings.setScrollSpeed(newSpeed);
+            return stay;
+        }
+        else
+            return leave;
         break;
     case 2:
         break;

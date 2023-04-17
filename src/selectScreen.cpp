@@ -33,6 +33,9 @@ void SelectScreen::copyText(u_int8_t pos)
 
 uint8_t SelectScreen::showScreen(String options[], u_int8_t anzOptions, u_int8_t oldSelect)
 {
+
+    scrollSpeed_S=settings.getScrollSpeed();
+    
     LOG_DEBUG(TAG, "oldSelect:" << oldSelect);
 
     // Die erste Zeile darf nicht ausgewählt werden. Sollte der alte Wert dennoch auf Null stehen wird er hier angehoben.
@@ -48,7 +51,7 @@ uint8_t SelectScreen::showScreen(String options[], u_int8_t anzOptions, u_int8_t
     // Größe des Feldes merken
     this->optionsSize = anzOptions + 1;
 
-    /* Der Screen soll eine Auswahlzeigen, die mit der Encoder-Drehung rauf/runter geht.
+    /* Der Screen soll eine Auswahl zeigen, die mit der Encoder-Drehung rauf/runter geht.
     Die Position dieser Markierung wird hier verwaltet:*/
     u_int8_t linePos = 1;
 
@@ -101,7 +104,7 @@ uint8_t SelectScreen::showScreen(String options[], u_int8_t anzOptions, u_int8_t
         u_int8_t aktPos = iEncoder.encoderPosition;
 
         // Warten und dabei den Encoder abfragen
-        for (unsigned long t = millis(); millis() - t < SCROLL_DELAY;)
+        for (unsigned long t = millis(); millis() - t < scrollSpeed_S;)
         {
             delay(50);
 

@@ -19,6 +19,7 @@
 #include <streamingScreen.hpp>
 #include <selectScreen.hpp>
 #include <testScreen.hpp>
+#include <speedScreen.hpp>
 #include <iRadioEncoder.hpp>
 #include <iRadioWifi.hpp>
 

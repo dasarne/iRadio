@@ -290,20 +290,20 @@ int8_t Settings::getZeitZone()
     return retVal;
 }
 
-void Settings::setScrollSpeed(u_int8_t speed)
+void Settings::setScrollSpeed(u_int32_t speed)
 {
     iRadioPrefs.begin(prefNamespace, false);
 
     LOG_DEBUG(TAG, "setScrollSpeed:" << speed);
 
-    iRadioPrefs.putChar("SS", speed);
+    iRadioPrefs.putUInt("SS", speed);
     iRadioPrefs.end();
 }
 
-u_int8_t Settings::getScrollSpeed()
+u_int32_t Settings::getScrollSpeed()
 {
     iRadioPrefs.begin(prefNamespace, false);
-    u_int8_t retVal = iRadioPrefs.getChar("SS", 4);
+    u_int16_t retVal = iRadioPrefs.getUInt("SS", 200);
     iRadioPrefs.end();
     LOG_DEBUG(TAG, "getScrollSpeed:" << retVal);
     return retVal;

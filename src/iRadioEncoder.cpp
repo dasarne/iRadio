@@ -119,6 +119,7 @@ EncoderState RadioEncoder::refreshPosition()
     // Wurde am Knopf gedreht?
     if (newPostion != encoderPosition)
     {
+        LOG_DEBUG(TAG,"Rotation");
         retVal = EncoderState::rotation;
     }
 

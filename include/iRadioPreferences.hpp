@@ -151,8 +151,8 @@ public:
     bool getSommerzeit();
     void setZeitzone(int8_t zone);
     int8_t getZeitZone();
-    void setScrollSpeed(u_int8_t speed);
-    u_int8_t getScrollSpeed();
+    void setScrollSpeed(u_int32_t speed);
+    u_int32_t getScrollSpeed();
     void setHelligkeit(u_int8_t helligkeit);
     u_int8_t getHelligkeit();
     void resetNVM();
