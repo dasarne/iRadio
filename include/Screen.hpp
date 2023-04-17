@@ -15,7 +15,7 @@
 #include <iRadioEncoder.hpp>
 
 #define SCROLL_DELAY 200 ///< Zeit zwischen den Scroll Darstellungen in [ms]. Je kleiner der Wert, desto schneller scrollt der Text.
-#define ESCAPE_DELAY 20000 ///< Zeit in [ms] die man abwarten muss, um ohne Änderung aus dem Dialog wieder rauszugehen.
+#define ESCAPE_DELAY 5000 ///< Zeit in [ms] die man abwarten muss, um ohne Änderung aus dem Dialog wieder rauszugehen.
 
 /**
  * @brief Basisklasse für alle Screens kümmert sich um das Scrolling

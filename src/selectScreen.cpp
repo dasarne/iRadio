@@ -31,16 +31,22 @@ void SelectScreen::copyText(u_int8_t pos)
     }
 }
 
-uint8_t SelectScreen::showScreen(String options[], u_int8_t optionsSize, u_int8_t oldSelect)
+uint8_t SelectScreen::showScreen(String options[], u_int8_t anzOptions, u_int8_t oldSelect)
 {
-    LOG_DEBUG(TAG,"oldSelect:"<<oldSelect);
+    LOG_DEBUG(TAG, "oldSelect:" << oldSelect);
+
+    // Die erste Zeile darf nicht ausgewählt werden. Sollte der alte Wert dennoch auf Null stehen wird er hier angehoben.
+    oldSelect++;
+
+    // der Encoder soll in "der Mitte" stehen, damit wir möglichst keinen Null-Durchgang erleben. Der macht Größenvergleiche kaputt.
     iEncoder.setEncoder(128);
+    delay(50);
 
     // Daten in die Klasse übernehmen
     selectableOptions = options;
 
     // Größe des Feldes merken
-    this->optionsSize = optionsSize + 1;
+    this->optionsSize = anzOptions + 1;
 
     /* Der Screen soll eine Auswahlzeigen, die mit der Encoder-Drehung rauf/runter geht.
     Die Position dieser Markierung wird hier verwaltet:*/
@@ -54,19 +60,26 @@ uint8_t SelectScreen::showScreen(String options[], u_int8_t optionsSize, u_int8_
     // Der Status des Encoders
     EncoderState aktState = EncoderState::nothing;
 
+    // Muss überhaupt ein Scrollbar berechent werden?
+    bool isScrollbar = (this->optionsSize > 4);
+    
+    // Bildschirm neu berechnen
+    copyText(screenPos);
+
+    // Die Scrollbar-Zeichen neu berechnen.
+    if (isScrollbar)
+        calcScrollBar(screenPos);
+    
     // Zeige die übergebenen Optionen Array
     while (true)
     {
 
-        // Feld für den Cursor zusammenstelle
+        // Feld für den Cursor zusammenstellen. Für jede Zeile gibt es ein Zeichen.
         //  Erstmal alles leer
         char linePointer[] = "    ";
 
         // An die Stelle des berechneten Cursors das Cursor-Zeichen schreiben.
         linePointer[linePos] = 21;
-
-        // Muss überhaupt ein Scrollbar berechent werden?
-        bool isScrollbar = (optionsSize > 4);
 
         // Wenn es eine Scrollbar gibt habe ich auf dem Bildschirm nur noch 18 Zeichen - links 1 Zeichen für den Cursor und rechts 1 Zeichen für die Scrollbar
         if (isScrollbar)
@@ -104,6 +117,7 @@ uint8_t SelectScreen::showScreen(String options[], u_int8_t optionsSize, u_int8_
                 noInteractionTime = millis();
                 if (newPos > aktPos)
                 {
+                    LOG_DEBUG(TAG, "++");
                     linePos++;
                     if (linePos > 3)
                     {
@@ -117,6 +131,7 @@ uint8_t SelectScreen::showScreen(String options[], u_int8_t optionsSize, u_int8_
                 }
                 else
                 {
+                    LOG_DEBUG(TAG, "--");
                     if (linePos != 0)
                     {
                         linePos--;
@@ -151,7 +166,7 @@ uint8_t SelectScreen::showScreen(String options[], u_int8_t optionsSize, u_int8_
 
                 // Ist die Zeit für ein Verlassen des Dialogs ohne Änderung abgelaufen?
                 if (millis() - noInteractionTime > ESCAPE_DELAY)
-                    return oldSelect;
+                    return UCHAR_MAX;
 
                 break;
             }

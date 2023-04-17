@@ -18,7 +18,7 @@
 static const char *TAG = "DISPLAY";
 
 StreamingScreen streamingScreen;
-SelectScreen selectScreen;
+
 TestScreen testScreen;
 
 RadioEncoder iEncoder;
@@ -108,8 +108,153 @@ void initDisplayHardware()
     // ###### Inialisierung des Displays ######
     lcd.begin(); // default 20*4
 
+    // Den Cursor abschalten.
+    lcd.cursorOff();
+
     // Einlesen aller Stations-Indizes
     nvmStations.getStations(stationKeys);
+}
+
+enum How2Continue
+{
+    stay,
+    leave
+};
+
+How2Continue configReset()
+{
+    LOG_DEBUG(TAG, "configReset");
+
+    SelectScreen selectScreen;
+    String configs[] = {
+        extraChar("Reset Werkszustand?"),
+        extraChar("Ja"),
+        extraChar("Nein"),
+        extraChar("Zurück")};
+
+    u_int8_t selection = selectScreen.showScreen(configs, 3, 1);
+
+    // Ist "Ja" ausgewählt worden?
+    if (selection == 0)
+    {
+        // Den NVM löschen und den ESP neustarten.
+        settings.resetNVM();
+        ESP.restart();
+    }
+
+    return stay;
+}
+
+How2Continue configInternet()
+{
+    LOG_DEBUG(TAG, "configInternet");
+    SelectScreen selectScreen;
+    String configs[] = {
+        extraChar("----- Internet -----"),
+        extraChar("IP:"),
+        extraChar(String("Hostname:") + WiFi.getHostname()),
+        extraChar("Zurück")};
+
+    selectScreen.showScreen(configs, 3, 1);
+    return stay;
+}
+
+How2Continue configClock()
+{
+    LOG_DEBUG(TAG, "configClock");
+    SelectScreen selectScreen;
+    String configs[] = {
+        extraChar("-- Uhr einstellen --"),
+        extraChar("Sommerzeit"),
+        extraChar("Zeitzone"),
+        extraChar("Zurück")};
+
+    u_int8_t selection = selectScreen.showScreen(configs, 3, 0);
+    switch (selection)
+    {
+    case 0:
+        break;
+    case 1:
+        break;
+    case 2:
+        break;
+    case 3:
+        break;
+    case UCHAR_MAX: // Abbruch
+    default:
+        return leave;
+        break;
+    }
+    return stay;
+}
+
+How2Continue configDisplay()
+{
+    LOG_DEBUG(TAG, "configDisplay");
+
+    SelectScreen selectScreen;
+    String configs[] = {
+        extraChar("-Anzeige einstellen-"),
+        extraChar("Helligkeit"),
+        extraChar("Scrollgeschw."),
+        extraChar("Zurück")};
+
+    u_int8_t selection = selectScreen.showScreen(configs, 3, 0);
+    switch (selection)
+    {
+    case 0:
+        break;
+    case 1:
+        break;
+    case 2:
+        break;
+    case 3:
+        break;
+    case UCHAR_MAX: // Abbruch
+    default:
+        return leave;
+        break;
+    }
+    return stay;
+}
+
+void configRadio()
+{
+    LOG_DEBUG(TAG, "configRadio");
+    How2Continue status = stay;
+    SelectScreen selectScreen;
+    String configs[] = {
+        extraChar("- Einstellungen -"),
+        extraChar("Anzeige"),
+        extraChar("Uhrzeit"),
+        extraChar("Netzwerk"),
+        extraChar("Werkszustand"),
+        extraChar("Zurück")};
+    do
+    {
+        u_int8_t selection = selectScreen.showScreen(configs, 5, 0);
+        LOG_DEBUG(TAG, "Selection:" << selection);
+        switch (selection)
+        {
+        case 0:
+            status = configDisplay();
+            break;
+        case 1:
+            status = configClock();
+            break;
+        case 2:
+            status = configInternet();
+            break;
+        case 3:
+            status = configReset();
+            break;
+        case 4:
+        case UCHAR_MAX: // Abbruch
+            status = leave;
+        default:
+            break;
+        }
+    } while (status != leave);
 }
 
 /**
@@ -117,6 +262,7 @@ void initDisplayHardware()
  */
 void selectNewStation()
 {
+    SelectScreen selectScreen;
     u_int8_t anz = nvmStations.getAnzahlStations();
     String sender[anz + 1];
 
@@ -132,11 +278,15 @@ void selectNewStation()
 
     currentStation = selectScreen.showScreen(sender, anz, currentStation);
 
-    // Schreibt die neue Station in den NVM
-    settings.setCurrentStation(currentStation);
+    // Ist der Select abgebrochen worden
+    if (currentStation != UCHAR_MAX)
+    {
+        // Schreibt die neue Station in den NVM
+        settings.setCurrentStation(currentStation);
 
-    // -- Den Sender wechseln --
-    connectCurrentStation();
+        // -- Den Sender wechseln --
+        connectCurrentStation();
+    }
 }
 
 TaskHandle_t displayTask;
@@ -148,12 +298,10 @@ TaskHandle_t displayTask;
 void displayTimer(void *pvParameters)
 {
     LOG_DEBUG(TAG, "displayTimer running on core:" << xPortGetCoreID());
-    
+
     // Endlosschleife: Kein Ende des Display-Management vorgesehen.
     while (true)
     {
-        // Immer wieder den Cursor abschalten.
-        lcd.cursorOff();
 
         // Die erste Zeile beinhaltet den Projekt-Text. Alle weiteren Zeilen werden von dem Audio-Stream gefüllt und aktuell gehalten.
         streamingScreen.setText(headingText, 0);
@@ -163,6 +311,7 @@ void displayTimer(void *pvParameters)
 
         // Defaultmäßig die Streamingansicht anzeigen.
         EncoderState state = streamingScreen.showScreen();
+
         switch (state)
         {
         case rotation:
@@ -170,6 +319,7 @@ void displayTimer(void *pvParameters)
             selectNewStation();
             break;
         case longPress:
+            configRadio();
         case shortPress:
         default:
             break;

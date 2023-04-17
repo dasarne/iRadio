@@ -136,5 +136,6 @@ EncoderState RadioEncoder::refreshPosition()
 
 void RadioEncoder::setEncoder(u_int8_t pos)
 {
+    encoderPosition = pos;
     encoder.setCount(pos);
 }

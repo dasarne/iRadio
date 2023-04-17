@@ -252,3 +252,8 @@ void Settings::setCurrentStation(u_int8_t theStation)
     iRadioPrefs.end();
 }
 
+void Settings::resetNVM()
+{
+    iRadioPrefs.clear();
+}
+

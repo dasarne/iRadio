@@ -42,7 +42,7 @@ public:
      * @param options Liste aller möglichen Optionen
      * @param optionsSize Anzahl der mögliche Optionen
      * @param oldSelect Vorherig ausgewählte Option
-     * @return uint8_t Neu ausgwählte Option
+     * @return uint8_t Neu ausgewählte Option oder UCHAR_MAX, wenn der Aufruf abgebrochen wurde
      */
     uint8_t showScreen(String options[], u_int8_t optionsSize, u_int8_t oldSelect);
 };

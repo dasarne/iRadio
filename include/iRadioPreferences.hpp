@@ -147,6 +147,7 @@ private:
 public:
     u_int8_t getCurrentStation();
     void setCurrentStation(u_int8_t theStation);
+    void resetNVM();
 };
 
 extern Settings settings;
