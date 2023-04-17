@@ -185,7 +185,7 @@ How2Continue configZeitZone()
 
     zzoneOpts[n] = {"", 0}; // Ende der Liste
 
-    String zzoneTexts[] = {"Es ist grade", "", "", ""};
+    String zzoneTexts[] = {"In welcher Zeitzone", "", "     (Europa:Berlin", "   hat die Zone +1)"};
 
     u_int8_t selection = zzoneScreen.showScreen(zzoneOpts, selected, zzoneTexts);
 
