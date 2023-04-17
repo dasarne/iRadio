@@ -252,8 +252,83 @@ void Settings::setCurrentStation(u_int8_t theStation)
     iRadioPrefs.end();
 }
 
+void Settings::setSommerzeit(bool isSummer)
+{
+    iRadioPrefs.begin(prefNamespace, false);
+
+    LOG_DEBUG(TAG, "setSommerzeit:" << (isSummer ? "Sommer" : "Winter"));
+
+    iRadioPrefs.putUChar("SZ", isSummer);
+    iRadioPrefs.end();
+}
+
+bool Settings::getSommerzeit()
+{
+    iRadioPrefs.begin(prefNamespace, false);
+    u_int8_t isSummer = iRadioPrefs.getUChar("SZ", 0);
+    iRadioPrefs.end();
+    LOG_DEBUG(TAG, "getSommerzeit:" << (isSummer ? "Sommer" : "Winter"));
+    return isSummer;
+}
+
+void Settings::setZeitzone(int8_t zone)
+{
+    iRadioPrefs.begin(prefNamespace, false);
+
+    LOG_DEBUG(TAG, "setZeitzone:" << zone);
+
+    iRadioPrefs.putChar("ZZ", zone);
+    iRadioPrefs.end();
+}
+
+int8_t Settings::getZeitZone()
+{
+    iRadioPrefs.begin(prefNamespace, false);
+    u_int8_t retVal = iRadioPrefs.getChar("ZZ", 1);
+    iRadioPrefs.end();
+    LOG_DEBUG(TAG, "getZeitZone:" << retVal);
+    return retVal;
+}
+
+void Settings::setScrollSpeed(u_int8_t speed)
+{
+    iRadioPrefs.begin(prefNamespace, false);
+
+    LOG_DEBUG(TAG, "setScrollSpeed:" << speed);
+
+    iRadioPrefs.putChar("SS", speed);
+    iRadioPrefs.end();
+}
+
+u_int8_t Settings::getScrollSpeed()
+{
+    iRadioPrefs.begin(prefNamespace, false);
+    u_int8_t retVal = iRadioPrefs.getChar("SS", 4);
+    iRadioPrefs.end();
+    LOG_DEBUG(TAG, "getScrollSpeed:" << retVal);
+    return retVal;
+}
+
+void Settings::setHelligkeit(u_int8_t helligkeit)
+{
+    iRadioPrefs.begin(prefNamespace, false);
+
+    LOG_DEBUG(TAG, "setHelligkeit:" << helligkeit);
+
+    iRadioPrefs.putChar("H", helligkeit);
+    iRadioPrefs.end();
+}
+
+u_int8_t Settings::getHelligkeit()
+{
+    iRadioPrefs.begin(prefNamespace, false);
+    u_int8_t retVal = iRadioPrefs.getChar("H", 15);
+    iRadioPrefs.end();
+    LOG_DEBUG(TAG, "getHelligkeit:" << retVal);
+    return retVal;
+}
+
 void Settings::resetNVM()
 {
     iRadioPrefs.clear();
 }
-

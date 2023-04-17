@@ -194,7 +194,7 @@ How2Continue configDisplay()
 
     SelectScreen selectScreen;
     String configs[] = {
-        extraChar("-Anzeige einstellen-"),
+        extraChar("Anzeige einstellen"),
         extraChar("Helligkeit"),
         extraChar("Scrollgeschw."),
         extraChar("Zurück")};
