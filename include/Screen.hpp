@@ -16,11 +16,6 @@
 
 #define ESCAPE_DELAY 5000 ///< Zeit in [ms] die man abwarten muss, um ohne Änderung aus dem Dialog wieder rauszugehen.
 
-struct OptionValue
-{
-    String name;
-    u_int32_t value;
-};
 
 /**
  * @brief
@@ -39,9 +34,9 @@ protected:
      * @return String
      */
     String calcScrollString(uint8_t zeilenNr, u_int8_t lineLength = 20);
-    u_int32_t scrollSpeed_S; ///< Die Geschwindigkeit, mit der der Text durchscrollt.
 
 public:
+    u_int32_t scrollSpeed_S; ///< Die Geschwindigkeit, mit der der Text durchscrollt.
     /**
      * @brief Schreiben einer Zeile in das Display. Mit dem Setzen des Textes wird das vielleicht nötige Scrolling berechnet.
      * Die Zeile beginnt dann von vorne.

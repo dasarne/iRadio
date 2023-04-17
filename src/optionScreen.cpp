@@ -1,20 +1,12 @@
-#include "speedScreen.hpp"
+#include "optionScreen.hpp"
 
 // Logging-Tag für Easy-Logger
-static const char *TAG = "SPEED-S";
+static const char *TAG = "OPTION-S";
 
-OptionValue speedOpts[] = {
-    {"Sehr Schnell", 10},
-    {"Schnell", 100},
-    {"Normal", 200},
-    {"Langsam", 400},
-    {"Sehr Langsam", 800},
-    {"", 0}};
-
-uint8_t SpeedScreen::showScreen()
+uint8_t OptionScreen::showScreen(OptionValue *someOptions, u_int8_t defaultOption, String *theText, void (*optionTester)(int aktValue))
 {
-    u_int8_t aktOpt = 2;
-    scrollSpeed_S = speedOpts[aktOpt].value;
+    u_int8_t aktOpt = defaultOption;
+    optionTester(someOptions[aktOpt].value);
 
     // Zeit messen, in der es keine Drehung am Encoder gab.
     unsigned long noInteractionTime = millis();
@@ -22,9 +14,10 @@ uint8_t SpeedScreen::showScreen()
     // Der Status des Encoders
     EncoderState aktState = EncoderState::nothing;
 
-    setText("---- Scrolling -----", 0);
-    setText("Text: " + speedOpts[aktOpt].name, 1);
-    setText("Ich bin ein langer Text, der leider nicht in die Zeile passt.", 3);
+    setText(theText[0], 0);
+    setText(theText[1] + someOptions[aktOpt].name, 1);
+    setText(theText[2], 2);
+    setText(theText[3], 3);
 
     // Zeige die übergebenen Optionen Array
     while (true)
@@ -52,13 +45,15 @@ uint8_t SpeedScreen::showScreen()
             switch (aktState)
             {
             case rotation:
+
                 // Es gab eine Drehung, also Timer für einen möglichen Escape zurücksetzen
                 noInteractionTime = millis();
-                setText("Text: " + speedOpts[aktOpt].name, 1);
+
+                // Die Option wechseln
                 if (newPos > aktPos)
                 {
                     aktOpt++;
-                    if (speedOpts[aktOpt].value == 0)
+                    if (someOptions[aktOpt].value == 0)
                     {
                         aktOpt--;
                     }
@@ -68,19 +63,23 @@ uint8_t SpeedScreen::showScreen()
                     if (aktOpt != 0)
                         aktOpt--;
                 }
-                setText("Text: " + speedOpts[aktOpt].name, 1);
-                scrollSpeed_S = speedOpts[aktOpt].value;
+
+                setText(theText[1] + someOptions[aktOpt].name, 1);
+
+                // Sollte eine Livevoransicht gewünscht sein, wird hier die dazu passende Methode aufgerufen.
+                if (*optionTester != NULL)
+                    optionTester(someOptions[aktOpt].value);
+
+                scrollSpeed_S = someOptions[aktOpt].value;
 
                 break;
+
             case shortPress:
             case longPress:
-                // Bei Tastendruck den Dialog verlassen
-                scrollSpeed_S = settings.getScrollSpeed();
-                return speedOpts[aktOpt].value;
+                return aktOpt;
                 break;
             case nothing:
             default:
-
                 // Ist die Zeit für ein Verlassen des Dialogs ohne Änderung abgelaufen?
                 if (millis() - noInteractionTime > ESCAPE_DELAY)
                     return UCHAR_MAX;

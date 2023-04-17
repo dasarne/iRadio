@@ -188,6 +188,18 @@ How2Continue configClock()
     return stay;
 }
 
+OptionScreen speedScreen;
+
+/**
+ * @brief Methode, die vom OptionScreen aufgerufen wird, wenn eine neue Option getestet werden soll.
+ * Hier wird die Scroll-Geschwindigkeit verändert.
+ * @param value Wert der getestet wird.
+ */
+void speedTestFuction(int value)
+{
+    speedScreen.scrollSpeed_S = value;
+}
+
 How2Continue configDisplay()
 {
     LOG_DEBUG(TAG, "configDisplay");
@@ -201,7 +213,15 @@ How2Continue configDisplay()
 
     u_int8_t selection = selectScreen.showScreen(configs, 3, 0);
 
-    SpeedScreen speedScreen;
+    OptionValue speedOpts[] = {
+        {"Sehr Schnell", 10},
+        {"Schnell", 100},
+        {"Normal", 200},
+        {"Langsam", 400},
+        {"Sehr Langsam", 800},
+        {"", 0}};
+    String speetTexts[] = {"-- Text-Anzeige --", "Text: ", "", "Ich bin ein sehr langer Text, der leider nicht in eine Zeile passt."};
+
     u_int8_t newSpeed;
 
     switch (selection)
@@ -209,7 +229,7 @@ How2Continue configDisplay()
     case 0:
         break;
     case 1:
-        newSpeed = speedScreen.showScreen();
+        newSpeed = speedScreen.showScreen(speedOpts, 2, speetTexts, speedTestFuction);
         if (newSpeed != UCHAR_MAX)
         {
             settings.setScrollSpeed(newSpeed);
