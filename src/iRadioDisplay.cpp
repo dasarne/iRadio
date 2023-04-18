@@ -204,7 +204,7 @@ How2Continue configZeitZone()
     else
     {
         settings.setZeitzone(selZone);
-        
+
         setTimezone();
 
         return stay;
@@ -215,7 +215,7 @@ How2Continue configSommerZeit()
 {
     LOG_DEBUG(TAG, "configSommerZeit");
     SelectScreen sommerScreen;
-    u_int8_t isWinter = settings.getSommerzeit();
+    u_int8_t isSommer = settings.getSommerzeit();
 
     String configs[] = {
         extraChar("Es ist grade:"),
@@ -223,7 +223,7 @@ How2Continue configSommerZeit()
         extraChar("Sommerzeit"),
         extraChar("Abbrechen")}; // Ende der Liste
 
-    u_int8_t selection = sommerScreen.showScreen(configs, 3, isWinter);
+    u_int8_t selection = sommerScreen.showScreen(configs, 3, isSommer);
 
     // Auswerten
     switch (selection)
@@ -256,6 +256,10 @@ How2Continue configClock()
 
     do
     {
+
+        u_int8_t isSommer = settings.getSommerzeit();
+        configs[1] = isSommer ? "Sommerzeit" : "Winterzeit";
+
         u_int8_t selection = selectScreen.showScreen(configs, 3, 0);
 
         switch (selection)
