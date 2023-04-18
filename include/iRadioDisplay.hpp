@@ -22,6 +22,7 @@
 #include <optionScreen.hpp>
 #include <iRadioEncoder.hpp>
 #include <iRadioWifi.hpp>
+#include <iRadioConfig.hpp>
 
 #include <log.h>
 
