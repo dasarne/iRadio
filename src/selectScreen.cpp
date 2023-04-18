@@ -34,8 +34,8 @@ void SelectScreen::copyText(u_int8_t pos)
 uint8_t SelectScreen::showScreen(String options[], u_int8_t anzOptions, u_int8_t oldSelect)
 {
 
-    scrollSpeed_S=settings.getScrollSpeed();
-    
+    scrollSpeed_S = settings.getScrollSpeed();
+
     LOG_DEBUG(TAG, "oldSelect:" << oldSelect);
 
     // Die erste Zeile darf nicht ausgewählt werden. Sollte der alte Wert dennoch auf Null stehen wird er hier angehoben.
@@ -55,7 +55,12 @@ uint8_t SelectScreen::showScreen(String options[], u_int8_t anzOptions, u_int8_t
     Die Position dieser Markierung wird hier verwaltet:*/
     u_int8_t linePos = 1;
 
-    u_int8_t screenPos = oldSelect - linePos;
+    // Muss der Bildschirm auf die Option ausgerichtet werden?
+    u_int8_t screenPos;
+    if (this->optionsSize > 4)
+        screenPos = oldSelect - linePos;
+    else
+        screenPos = 0;
 
     // Zeit messen, in der es keine Drehung am Encoder gab.
     unsigned long noInteractionTime = millis();
@@ -65,14 +70,14 @@ uint8_t SelectScreen::showScreen(String options[], u_int8_t anzOptions, u_int8_t
 
     // Muss überhaupt ein Scrollbar berechent werden?
     bool isScrollbar = (this->optionsSize > 4);
-    
+
     // Bildschirm neu berechnen
     copyText(screenPos);
 
     // Die Scrollbar-Zeichen neu berechnen.
     if (isScrollbar)
         calcScrollBar(screenPos);
-    
+
     // Zeige die übergebenen Optionen Array
     while (true)
     {

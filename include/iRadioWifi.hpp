@@ -15,14 +15,14 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
-#include <ESPAsyncWiFiManager.h>         //https://github.com/tzapu/WiFiManager
+#include <ESPAsyncWiFiManager.h> //https://github.com/tzapu/WiFiManager
 
 // Fürs NTP
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 
 void setupWifi();
-
-extern NTPClient timeClient;
+void setTimezone();
+String getTime();
 
 #endif // IRADIOWIFI_HPP_

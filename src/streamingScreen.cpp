@@ -22,7 +22,7 @@ EncoderState StreamingScreen::showScreen()
          * - Verbindungszustand
          */
         // In die erste Zeile muss noch der Status eingefügt werden
-        String head = getText(0) + "    " + timeClient.getFormattedTime() + "   ";
+        String head = getText(0) + "    " + getTime() + "   ";
 
         head.setCharAt(19, showConnection);
 

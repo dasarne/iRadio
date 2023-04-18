@@ -5,8 +5,13 @@ static const char *TAG = "OPTION-S";
 
 uint8_t OptionScreen::showScreen(OptionValue *someOptions, u_int8_t defaultOption, String *theText, void (*optionTester)(int aktValue))
 {
+    scrollSpeed_S = settings.getScrollSpeed();
+
     u_int8_t aktOpt = defaultOption;
-    optionTester(someOptions[aktOpt].value);
+
+    // Erster Test der Einstellungen.
+    if (optionTester != NULL)
+        optionTester(someOptions[aktOpt].value);
 
     // Zeit messen, in der es keine Drehung am Encoder gab.
     unsigned long noInteractionTime = millis();
@@ -22,8 +27,7 @@ uint8_t OptionScreen::showScreen(OptionValue *someOptions, u_int8_t defaultOptio
     // Zeige die übergebenen Optionen Array
     while (true)
     {
-
-        // Cursor + Text scrollend ausgeben + Scrollbar
+        
         writeText(
             calcScrollString(0),
             calcScrollString(1),
@@ -45,15 +49,17 @@ uint8_t OptionScreen::showScreen(OptionValue *someOptions, u_int8_t defaultOptio
             switch (aktState)
             {
             case rotation:
-
                 // Es gab eine Drehung, also Timer für einen möglichen Escape zurücksetzen
                 noInteractionTime = millis();
 
                 // Die Option wechseln
                 if (newPos > aktPos)
                 {
+                    //Nächsten Eintrag in der Liste
                     aktOpt++;
-                    if (someOptions[aktOpt].value == 0)
+                    
+                    // Das Ende der Liste wird durch einen Value von INT_MAX angezeigt
+                    if (someOptions[aktOpt].value == INT_MAX)
                     {
                         aktOpt--;
                     }
@@ -67,16 +73,15 @@ uint8_t OptionScreen::showScreen(OptionValue *someOptions, u_int8_t defaultOptio
                 setText(theText[1] + someOptions[aktOpt].name, 1);
 
                 // Sollte eine Livevoransicht gewünscht sein, wird hier die dazu passende Methode aufgerufen.
-                if (*optionTester != NULL)
+                if (optionTester != NULL)
                     optionTester(someOptions[aktOpt].value);
-
-                scrollSpeed_S = someOptions[aktOpt].value;
 
                 break;
 
             case shortPress:
             case longPress:
-                return aktOpt;
+
+                return someOptions[aktOpt].value;
                 break;
             case nothing:
             default:

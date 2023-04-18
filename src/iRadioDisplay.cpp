@@ -180,27 +180,33 @@ How2Continue configZeitZone()
             selected = n;
         }
 
-        zzoneOpts[n] = {String(i), i};
+        // Die Zeitzone zeigt man immer mit Vorzeichen (Außer bei der Null)
+        String zzEintrag = String(i > 0 ? "+" : (i == 0 ? " " : "")) + String(i);
+
+        zzoneOpts[n] = {zzEintrag, i};
     }
 
-    zzoneOpts[n] = {"", 0}; // Ende der Liste
+    zzoneOpts[n] = {"", INT_MAX}; // Ende der Liste
 
     String zzoneTexts[] = {
-        "In welcher Zeitzone", 
-        "", 
-        "     (EU:Berlin hat", 
+        "In welcher Zeitzone",
+        "",
+        "     (EU:Berlin hat",
         "       die Zone +1)"};
 
-    u_int8_t selection = zzoneScreen.showScreen(zzoneOpts, selected, zzoneTexts);
+    u_int8_t selZone = zzoneScreen.showScreen(zzoneOpts, selected, zzoneTexts);
 
     // Auswerten
-    if (selection == UCHAR_MAX)
+    if (selZone == UCHAR_MAX)
     {
         return leave;
     }
     else
     {
-        settings.setZeitzone(zzoneOpts[selection].value);
+        settings.setZeitzone(selZone);
+        
+        setTimezone();
+
         return stay;
     }
 }
@@ -208,18 +214,16 @@ How2Continue configZeitZone()
 How2Continue configSommerZeit()
 {
     LOG_DEBUG(TAG, "configSommerZeit");
-    OptionScreen sommerScreen;
+    SelectScreen sommerScreen;
     u_int8_t isWinter = settings.getSommerzeit();
 
-    OptionValue sommerOpts[] = {
-        {"Winterzeit", 0},
-        {"Sommerzeit", 1},
-        {"Abbrechen", 2},
-        {"", 0}}; // Ende der Liste
+    String configs[] = {
+        extraChar("Es ist grade:"),
+        extraChar("Winterzeit"),
+        extraChar("Sommerzeit"),
+        extraChar("Abbrechen")}; // Ende der Liste
 
-    String sommerTexts[] = {"Es ist grade", "", "", ""};
-
-    u_int8_t selection = sommerScreen.showScreen(sommerOpts, isWinter, sommerTexts);
+    u_int8_t selection = sommerScreen.showScreen(configs, 3, isWinter);
 
     // Auswerten
     switch (selection)
@@ -227,6 +231,8 @@ How2Continue configSommerZeit()
     case 0:
     case 1:
         settings.setSommerzeit(selection);
+        setTimezone();
+
         return stay;
         break;
     case 2:
@@ -238,31 +244,41 @@ How2Continue configSommerZeit()
 }
 How2Continue configClock()
 {
+    How2Continue status = stay;
+
     LOG_DEBUG(TAG, "configClock");
     SelectScreen selectScreen;
     String configs[] = {
-        extraChar("-- Uhr einstellen --"),
+        extraChar("-- Uhr einstellen--"),
         extraChar("Sommerzeit"),
         extraChar("Zeitzone"),
         extraChar("Zurück")};
 
-    u_int8_t selection = selectScreen.showScreen(configs, 3, 0);
-
-    switch (selection)
+    do
     {
-    case 0:
-        break;
-    case 1:
-        break;
-    case 2:
-        break;
-    case 3:
-        break;
-    case UCHAR_MAX: // Abbruch
-    default:
-        return leave;
-        break;
-    }
+        u_int8_t selection = selectScreen.showScreen(configs, 3, 0);
+
+        switch (selection)
+        {
+        case 0:
+            status = configSommerZeit();
+            break;
+        case 1:
+            status = configZeitZone();
+            break;
+        case 2:
+            return stay;
+            break;
+        case 3:
+            break;
+        case UCHAR_MAX: // Abbruch
+        default:
+            return leave;
+            break;
+        }
+
+    } while (status != leave);
+
     return stay;
 }
 
@@ -281,6 +297,7 @@ void speedTestFuction(int value)
 How2Continue configDisplay()
 {
     LOG_DEBUG(TAG, "configDisplay");
+    How2Continue status = stay;
 
     SelectScreen selectScreen;
     String configs[] = {
@@ -297,34 +314,38 @@ How2Continue configDisplay()
         {"Normal", 200},
         {"Langsam", 400},
         {"Sehr Langsam", 800},
-        {"", 0}};
-    String speetTexts[] = {"-- Text-Anzeige --", "Text: ", "", "Ich bin ein sehr langer Text, der leider nicht in eine Zeile passt."};
+        {"", INT_MAX}}; // Ende der Liste
+
+    String speetTexts[] = {"-- Text-Anzeige --", "Text: ", "", "Ich bin ein sehr langer Text, der nicht in eine Zeile passt."};
 
     u_int8_t newSpeed;
-
-    switch (selection)
+    do
     {
-    case 0:
-        break;
-    case 1:
-        newSpeed = speedScreen.showScreen(speedOpts, 2, speetTexts, speedTestFuction);
-        if (newSpeed != UCHAR_MAX)
+        switch (selection)
         {
-            settings.setScrollSpeed(newSpeed);
-            return stay;
-        }
-        else
+        case 0:
+            break;
+        case 1:
+            newSpeed = speedScreen.showScreen(speedOpts, 2, speetTexts, speedTestFuction);
+            if (newSpeed != UCHAR_MAX)
+            {
+                settings.setScrollSpeed(newSpeed);
+                status = stay;
+            }
+            else
+                status = leave;
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        case UCHAR_MAX: // Abbruch
+        default:
             return leave;
-        break;
-    case 2:
-        break;
-    case 3:
-        break;
-    case UCHAR_MAX: // Abbruch
-    default:
-        return leave;
-        break;
-    }
+            break;
+        }
+    } while (status != leave);
+
     return stay;
 }
 

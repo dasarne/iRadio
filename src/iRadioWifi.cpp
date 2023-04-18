@@ -31,7 +31,6 @@ NTPClient timeClient(ntpUDP);
 
 TaskHandle_t wifiTask;
 
-
 /**
  * @brief Multithreading-Einstieg: Hier wird das Display verwaltet
  *
@@ -79,7 +78,7 @@ void wifiTimer(void *pvParameters)
 
         // Anzeigen das keine Verbindung steht. Das wird im StreamScreen ausgewertet
         showConnection = SHOW_CONN_NONE;
-        
+
         //... um dann erneut zu versuchen eine Verbindung wieder aufzubauen.
         if (!wifiManager.autoConnect("CampusRadioAP"))
         {
@@ -110,13 +109,9 @@ void setupWifi()
      */
     // Initialize a NTPClient to get time
     timeClient.begin();
-    // Set offset time in seconds to adjust for your timezone, for example:
-    // GMT +1 = 3600
-    // GMT +8 = 28800
-    // GMT -1 = -3600
-    // GMT 0 = 0
-    timeClient.setTimeOffset(2 * 3600);
 
+    setTimezone();
+    
     // Thread der versucht eine WLAN-Verbindung aufzubauen.
     xTaskCreate(
         wifiTimer,  /* Function to implement the task */
@@ -126,4 +121,21 @@ void setupWifi()
         0,          /* Priority of the task */
         &wifiTask   /* Task handle. */
     );
+}
+
+void setTimezone()
+{
+
+    // Set offset time in seconds to adjust for your timezone, for example:
+    // GMT +1 = 3600
+    // GMT +8 = 28800
+    // GMT -1 = -3600
+    // GMT 0 = 0
+    int8_t zeitZone = settings.getZeitZone() + settings.getSommerzeit();
+    timeClient.setTimeOffset(zeitZone * 3600);
+}
+
+String getTime()
+{
+    return timeClient.getFormattedTime();
 }
