@@ -14,7 +14,7 @@
    Every service in this list will get logged
 */
 //#define LOG_FILTER "DISPLAY,SCREEN,STREAM-S,OPTION-S,SPEED-S,MAIN,AUDIO,WIFI,PREFS,ENCODER,CONFIG"
-#define LOG_FILTER "DISPLAY,SCREEN,STREAM-S,OPTION-S,SPEED-S,MAIN,ENCODER,CONFIG"
+#define LOG_FILTER "DISPLAY,SCREEN,STREAM-S,OPTION-S,SPEED-S,WIFI,AUDIO,MAIN,ENCODER,CONFIG"
 
 /* If you define LOG_FILTER_EXCLUDE, then everything will be logged except services
    listed in LOG_FILTER. Effectively it reverses the filter */

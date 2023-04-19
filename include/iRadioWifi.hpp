@@ -25,4 +25,7 @@ void setupWifi();
 void setTimezone();
 String getTime();
 
+bool isWifiMessage();
+String getWifiMessage(u_int8_t zeile);
+
 #endif // IRADIOWIFI_HPP_

@@ -57,8 +57,7 @@ void connectCurrentStation()
   // Aufruf
   bool status = audio.connecttohost(urlCharArr);
 
-  LOG_DEBUG(TAG, "Status:" << (status ? "T" : "F"));
-  LOG_DEBUG(TAG, "connectCurrentStation running on core:" <<xPortGetCoreID());
+  LOG_DEBUG(TAG, "connectCurrentStation-Status:" << (status ? "T" : "F"));
 }
 
 /**

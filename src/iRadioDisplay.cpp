@@ -55,7 +55,6 @@ char showConnection = SHOW_CONN_UDEF;
  */
 u_int8_t stationKeys[ALLOW_STATIONS];
 
-int volumePulses;
 /**
  * @brief Ließt die Station zu einem Index in der darstellenden Liste (stationKeys) aus.
  * Um einen einfachen Zugriff auf den NVM zu ermöglichen
@@ -74,10 +73,6 @@ Station getStation(uint8_t displayIndex)
     // Die zugehörige Station aus dem NVM lesen und zurückgeben.
     return nvmStations.getStation(nvmIndex);
 }
-
-/*  -----( Declare own Characters ) ---*/
-// Special character to show a speaker icon for current station
-uint8_t speaker[8] = {0x3, 0x5, 0x19, 0x11, 0x19, 0x5, 0x3, 0x0};
 
 Station getCurrentStation()
 {
@@ -164,8 +159,18 @@ void displayTimer(void *pvParameters)
         // Die erste Zeile beinhaltet den Projekt-Text. Alle weiteren Zeilen werden von dem Audio-Stream gefüllt und aktuell gehalten.
         streamingScreen.setText(headingText, 0);
 
-        // Nicht alle Sender senden einen Stationsnamen. Deshalb setzen wir hier den Namen erstmal aus dem Speicher.
-        streamingScreen.setText(getCurrentStation().name, 1);
+        // Gibt es eine Störung im WLAN, dann die zugehörige Nachricht ausgeben
+        if (isWifiMessage())
+        {
+            streamingScreen.setText(getWifiMessage(0), 1);
+            streamingScreen.setText(getWifiMessage(1), 2);
+            streamingScreen.setText(getWifiMessage(2), 3);
+        }
+        else
+        {
+            // Nicht alle Sender senden einen Stationsnamen. Deshalb setzen wir hier den Namen erstmal aus dem Speicher.
+            streamingScreen.setText(getCurrentStation().name, 1);
+        }
 
         // Defaultmäßig die Streamingansicht anzeigen.
         EncoderState state = streamingScreen.showScreen();
