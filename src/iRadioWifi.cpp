@@ -19,12 +19,11 @@
 // Logging-Tag für Easy-Logger
 static const char *TAG = "WIFI";
 
-AsyncWebServer server(80);
-DNSServer dns;
-AsyncWiFiManager wifiManager(&server, &dns);
+// WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
+WiFiManager wifiManager;
 
 String wifiMessages[3] = {
-    "-- Kein Internet --",
+    "-! Kein Internet --",
     "AP: CampusRadioAP",
     "http://192.168.4.1"}; ///< Nachrichten an den Benutzer, wenn WLAN gestört ist.
 
@@ -42,44 +41,45 @@ TaskHandle_t wifiTask;
  */
 void wifiTimer(void *pvParameters)
 {
-
-    // Warten bis eine Verbindung steht
-    while (!WiFi.isConnected())
+    while (true)
     {
-        LOG_DEBUG(TAG, "wifiTimer:criticalLoop");
-        wifiManager.criticalLoop();
-        // Anzeigen das keine Verbindung steht. Das wird im StreamScreen ausgewertet
-        showConnection = SHOW_CONN_NONE;
-        delay(1000);
+        // Warten bis eine Verbindung steht
+        while (!WiFi.isConnected())
+        {
+            LOG_DEBUG(TAG, "wifiTimer:criticalLoop");
+            // Anzeigen das keine Verbindung steht. Das wird im StreamScreen ausgewertet
+            showConnection = SHOW_CONN_NONE;
+            delay(1000);
+        }
+
+        LOG_DEBUG(TAG, "wifiTimer:connected");
+
+        // In diesem Bereich ist des ESP mit dem Internet verbunden
+
+        // Also los, den Stream starten, der Benutzer will was hören ;-)
+        connectCurrentStation();
+
+        LOG_DEBUG(TAG, "wifiTimer:Timer");
+
+        // Wie spät ist es eigentlich? Auch die aktuelle Zeit holen wir uns hier.
+        if (!timeClient.update())
+        {
+            timeClient.forceUpdate();
+        }
+        LOG_DEBUG(TAG, "wifiTimer:Timer connected");
+
+        // Warten bis WLAN weg ist
+        while (WiFi.isConnected())
+        {
+            showConnection = SHOW_CONN_WLAN;
+            delay(1000);
+        }
+
+        LOG_DEBUG(TAG, "wifiTimer:Timer lost connection");
+
+        // Um eine neue Verbindung aufzubauen machen wir hier einen Neustart. Anders kann der WifiManager scheinbar nicht aktiv werden.
+        // ESP.restart();
     }
-
-    LOG_DEBUG(TAG, "wifiTimer:connected");
-
-    // In diesem Bereich ist des ESP mit dem Internet verbunden
-
-    // Also los, den Stream starten, der Benutzer will was hören ;-)
-    connectCurrentStation();
-
-    LOG_DEBUG(TAG, "wifiTimer:Timer");
-
-    // Wie spät ist es eigentlich? Auch die aktuelle Zeit holen wir uns hier.
-    if (!timeClient.update())
-    {
-        timeClient.forceUpdate();
-    }
-    LOG_DEBUG(TAG, "wifiTimer:Timer connected");
-
-    // Warten bis WLAN weg ist
-    while (WiFi.isConnected())
-    {
-        showConnection = SHOW_CONN_WLAN;
-        delay(1000);
-    }
-
-    LOG_DEBUG(TAG, "wifiTimer:Timer lost connection");
-
-    // Um eine neue Verbindung aufzubauen machen wir hier einen Neustart. Anders kann der WifiManager scheinbar nicht aktiv werden.
-    ESP.restart();
 }
 
 void setupWifi()
@@ -91,8 +91,8 @@ void setupWifi()
      * Wenn kein Netz mehr da ist, macht der Wifimanager einen AccessPoint auf und bietet unter http://192.168.4.1 ein Webinterface um die
      * WLAN-Verbindung zu konfigurieren.
      */
-
-    if (!wifiManager.autoConnect("CampusRadioAP", NULL, 10000))
+    LOG_DEBUG(TAG, "StartWifi-Manager");
+    if (!wifiManager.autoConnect("CampusRadioAP", NULL))
     {
         Serial.println("failed to connect!!");
         ESP.restart();
