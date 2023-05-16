@@ -167,7 +167,7 @@ void iRadioStations::getStations(u_int8_t *stations)
 {
     iRadioPrefs.begin(stationNamespace, false);
 
-    // iRadioPrefs.clear();
+    //iRadioPrefs.clear();
     u_int8_t anzahlStations = getAnzahlStations();
 
     LOG_DEBUG(TAG, "Anzahl Stationen:" << anzahlStations);
@@ -204,10 +204,9 @@ void iRadioStations::getStations(u_int8_t *stations)
         // Den Schlüssel im NVM suchen
         if (iRadioPrefs.isKey(key))
         {
-            stations[stationIndex] = index;
+            stations[stationIndex++] = index;
         }
 
-        stationIndex++;
     }
 
     iRadioPrefs.end();

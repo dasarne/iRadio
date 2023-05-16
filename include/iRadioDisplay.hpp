@@ -51,6 +51,11 @@ constexpr uint8_t BEL = 32; //< Pin für die Beleuchtung des Displays
 #define SHOW_CONN_BLUE 'B' ///<  wenn Bluetooth
 extern char showConnection;
 /// @}
+/**
+ * @brief Die Liste alle Keys (Indizes im NVM).
+ *
+ */
+extern u_int8_t stationKeys[ALLOW_STATIONS];
 
 int scrollLine(int LineNumber, String textLine);
 void clearLine(uint8_t line);

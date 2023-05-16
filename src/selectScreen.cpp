@@ -10,24 +10,19 @@ void SelectScreen::copyText(u_int8_t pos)
 {
     u_int8_t korrigierteSelection = pos;
 
-    // Verlasse ich den sichtbaren Bereich der Liste der Optionen?
-    if (pos > optionsSize)
-    {
-        korrigierteSelection = optionsSize;
-    }
-
-    if (pos < 0)
-    {
-        korrigierteSelection = 0;
-    }
-
     // Kopiert den aktuell sichtbaren Bereich ins Fenster
     for (int i = 0; i < 4; i++)
     {
         // Was ist als nächstes zu kopieren?
         u_int8_t copyPos = korrigierteSelection + i;
+
+        // Verlasse ich den sichtbaren Bereich der Liste der Optionen?
+        String options2set = "";
+        if (copyPos < optionsSize && copyPos >= 0)
+            options2set = selectableOptions[copyPos];
+
         // Sonst die passende Option anzeigen.
-        setText(selectableOptions[copyPos], i);
+        setText(options2set, i);
     }
 }
 
