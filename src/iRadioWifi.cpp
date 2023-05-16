@@ -23,7 +23,7 @@ static const char *TAG = "WIFI";
 WiFiManager wifiManager;
 
 String wifiMessages[3] = {
-    "-! Kein Internet --",
+    "-- Kein Internet --",
     "AP: CampusRadioAP",
     "http://192.168.4.1"}; ///< Nachrichten an den Benutzer, wenn WLAN gestört ist.
 
@@ -77,8 +77,6 @@ void wifiTimer(void *pvParameters)
 
         LOG_DEBUG(TAG, "wifiTimer:Timer lost connection");
 
-        // Um eine neue Verbindung aufzubauen machen wir hier einen Neustart. Anders kann der WifiManager scheinbar nicht aktiv werden.
-        // ESP.restart();
     }
 }
 
