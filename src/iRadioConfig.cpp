@@ -169,6 +169,7 @@ How2Continue configClock()
 }
 
 OptionScreen speedScreen, brightScreen;
+static u_int16_t sel2speed[] = {10, 100, 200, 400, 800};
 
 /**
  * @brief Methode, die vom OptionScreen aufgerufen wird, wenn eine neue Option getestet werden soll.
@@ -177,7 +178,7 @@ OptionScreen speedScreen, brightScreen;
  */
 void speedTestFunction(int value)
 {
-    speedScreen.scrollSpeed_S = value;
+    speedScreen.scrollSpeed_S = sel2speed[value];
 }
 
 void setBrightness(int value)
@@ -202,12 +203,12 @@ How2Continue configDisplay()
 
     // Mögliche Textgeschwindigkeit
     OptionValue speedOpts[] = {
-        {"Sehr Schnell", 10},
-        {"Schnell", 100},
-        {"Normal", 200},
-        {"Langsam", 400},
-        {"Sehr Langsam", 800},
-        {"", INT_MAX}}; // Ende der Liste
+        {"Sehr Schnell", 0}, // 10
+        {"Schnell", 1},      // 100
+        {"Normal", 2},       // 200
+        {"Langsam", 3},      // 400
+        {"Sehr Langsam", 4}, // 800
+        {"", INT_MAX}};      // Ende der Liste
 
     // Mögliche Helligkeit
     OptionValue brightOpts[] = {
@@ -236,7 +237,7 @@ How2Continue configDisplay()
                 settings.setHelligkeit(newBrightness);
                 status = stay;
             }
-            else
+            else // Abbrechen
             {
                 setBrightness(settings.getHelligkeit());
                 status = leave;
@@ -244,17 +245,21 @@ How2Continue configDisplay()
             return stay;
             break;
         case 1: // Textgeschwindigkeit
-            newSpeed = speedScreen.showScreen(speedOpts, 2, speedTexts, speedTestFunction);
+        //ToDo: Nur noch mit Indizes arbeiten und beim Speichern auch Indizes abspeichern. Eine Methode zum Setzen der Geschwindigkeit muss in den Source für Display. Analog dazu muss die Behandlung der Helligkeit implementiert werden.
+            newSpeed = speedScreen.showScreen(speedOpts, 2 , speedTexts, speedTestFunction);
+            LOG_DEBUG(TAG, "newSpeed: " << newSpeed);
             if (newSpeed != UCHAR_MAX)
             {
-                settings.setScrollSpeed(newSpeed);
+                settings.setScrollSpeed(sel2speed[newSpeed]);
                 status = stay;
             }
             else
                 status = leave;
-            break;
-        case 2:
             return stay;
+            break;
+
+        case 2:
+            status = leave;
             break;
         case 3:
             break;
