@@ -43,6 +43,13 @@ void IRAM_ATTR buttonIsr()
     int pin_state = digitalRead(ENCBUT);
     unsigned long button_time = millis();
 
+    // Wenn der Knopf gedrückt wurde, wird die Zeit gespeichert. Damit wird das Signal gesetzt, das ein Event beim Knopf loslassen ausgewertet werden muss
+    if (pin_state == LOW)
+    {
+        last_button_time = button_time;
+        return;
+    }
+
     // Wenn der Knopf losgelassen wurde (`pin_state == HIGH`), wird die Zeit gemessen und ausgewertet.
     // Aber nur wenn nicht schon die Zeit für den Button abgelaufen ist (last_button_time != 0), wird er noch ausgewertet.
     if (pin_state == HIGH && last_button_time != 0)
@@ -52,7 +59,7 @@ void IRAM_ATTR buttonIsr()
         // Gebe das Signal, das der Event schon gesendet wurde
         last_button_time = 0;
 
-        if (diff < 50)
+        if (diff < 30)
         {
             // Tasten-Preller
         }
@@ -66,11 +73,6 @@ void IRAM_ATTR buttonIsr()
         }
     }
 
-    // Wenn der Knopf gedrückt wurde, wird die Zeit gespeichert. Damit wird das Signal gesetzt, das ein Event beim Knopf loslassen ausgewertet werden muss
-    if (pin_state == LOW)
-    {
-        last_button_time = button_time;
-    }
 }
 
 TaskHandle_t buttonTask;

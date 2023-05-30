@@ -79,8 +79,9 @@ uint8_t OptionScreen::showScreen(OptionValue *someOptions, u_int8_t defaultOptio
                 break;
 
             case shortPress:
+                LOG_DEBUG(TAG,"shortPress");
             case longPress:
-
+                LOG_DEBUG(TAG,"longPress");
                 return someOptions[aktOpt].value;
                 break;
             case nothing:

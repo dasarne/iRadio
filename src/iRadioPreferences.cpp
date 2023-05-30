@@ -321,7 +321,7 @@ void Settings::setHelligkeit(u_int8_t helligkeit)
 u_int8_t Settings::getHelligkeit()
 {
     iRadioPrefs.begin(prefNamespace, false);
-    u_int8_t retVal = iRadioPrefs.getChar("H", 15);
+    u_int8_t retVal = iRadioPrefs.getChar("H", 255);
     iRadioPrefs.end();
     LOG_DEBUG(TAG, "getHelligkeit:" << retVal);
     return retVal;

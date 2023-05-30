@@ -1,9 +1,7 @@
 #include <iRadioDisplay.hpp>
 
-
 // Logging-Tag für Easy-Logger
 static const char *TAG = "CONFIG";
-
 
 How2Continue configReset()
 {
@@ -170,16 +168,22 @@ How2Continue configClock()
     return stay;
 }
 
-OptionScreen speedScreen;
+OptionScreen speedScreen, brightScreen;
 
 /**
  * @brief Methode, die vom OptionScreen aufgerufen wird, wenn eine neue Option getestet werden soll.
  * Hier wird die Scroll-Geschwindigkeit verändert.
  * @param value Wert der getestet wird.
  */
-void speedTestFuction(int value)
+void speedTestFunction(int value)
 {
     speedScreen.scrollSpeed_S = value;
+}
+
+void setBrightness(int value)
+{
+    static u_int8_t sel2bright[] = {255, 191, 127, 64, 0};
+    analogWrite(BEL, sel2bright[value]);
 }
 
 How2Continue configDisplay()
@@ -196,6 +200,7 @@ How2Continue configDisplay()
 
     u_int8_t selection = selectScreen.showScreen(configs, 3, 0);
 
+    // Mögliche Textgeschwindigkeit
     OptionValue speedOpts[] = {
         {"Sehr Schnell", 10},
         {"Schnell", 100},
@@ -204,17 +209,42 @@ How2Continue configDisplay()
         {"Sehr Langsam", 800},
         {"", INT_MAX}}; // Ende der Liste
 
-    String speetTexts[] = {"-- Text-Anzeige --", "Text: ", "", "Ich bin ein sehr langer Text, der nicht in eine Zeile passt."};
+    // Mögliche Helligkeit
+    OptionValue brightOpts[] = {
+        {"100%", 0},
+        {"75%", 1},
+        {"50%", 2},
+        {"25%", 3},
+        {"Aus", 4},
+        {"", INT_MAX}}; // Ende der Liste
+
+    String speedTexts[] = {"-- Text-Anzeige --", "Text: ", "", "Ich bin ein sehr langer Text, der nicht in eine Zeile passt."};
+    String brightTexts[] = {"-- Helligkeit --", "Wert:", "", ""};
 
     u_int8_t newSpeed;
+    u_int8_t oldBrightness, newBrightness;
     do
     {
         switch (selection)
         {
-        case 0:
+        case 0: // Helligkeit
+            oldBrightness = settings.getHelligkeit();
+
+            newBrightness = brightScreen.showScreen(brightOpts, oldBrightness, brightTexts, setBrightness);
+            if (newBrightness != UCHAR_MAX)
+            {
+                settings.setHelligkeit(newBrightness);
+                status = stay;
+            }
+            else
+            {
+                setBrightness(settings.getHelligkeit());
+                status = leave;
+            }
+            return stay;
             break;
-        case 1:
-            newSpeed = speedScreen.showScreen(speedOpts, 2, speetTexts, speedTestFuction);
+        case 1: // Textgeschwindigkeit
+            newSpeed = speedScreen.showScreen(speedOpts, 2, speedTexts, speedTestFunction);
             if (newSpeed != UCHAR_MAX)
             {
                 settings.setScrollSpeed(newSpeed);
@@ -224,6 +254,7 @@ How2Continue configDisplay()
                 status = leave;
             break;
         case 2:
+            return stay;
             break;
         case 3:
             break;
