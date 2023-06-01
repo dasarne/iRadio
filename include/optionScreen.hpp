@@ -8,17 +8,11 @@
  * @copyright Copyright (c) 2023
  *
  */
-#ifndef SPEEDSCREEN_HPP_
-#define SPEEDSCREEN_HPP_
+#ifndef OPTIONSCREEN_HPP_
+#define OPTIONSCREEN_HPP_
 
 #include <Arduino.h>
 #include <iRadioDisplay.hpp>
-
-struct OptionValue
-{
-    String name;
-    int value;
-};
 
 class OptionScreen : public Screen
 {
@@ -36,4 +30,4 @@ public:
     uint8_t showScreen(OptionValue *someOptions, u_int8_t defaultOpt, String *theText, void (*optionTester)(int aktValue)=NULL);
 };
 
-#endif // SPEEDSCREEN_HPP_
+#endif // OPTIONSCREEN_HPP_

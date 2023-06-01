@@ -302,7 +302,7 @@ void Settings::setScrollSpeed(u_int32_t speed)
 u_int32_t Settings::getScrollSpeed()
 {
     iRadioPrefs.begin(prefNamespace, false);
-    u_int16_t retVal = iRadioPrefs.getUInt("SS", 200);
+    u_int16_t retVal = iRadioPrefs.getUInt("SS", 2);
     iRadioPrefs.end();
     LOG_DEBUG(TAG, "getScrollSpeed:" << retVal);
     return retVal;

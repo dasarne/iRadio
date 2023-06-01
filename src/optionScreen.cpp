@@ -5,13 +5,14 @@ static const char *TAG = "OPTION-S";
 
 uint8_t OptionScreen::showScreen(OptionValue *someOptions, u_int8_t defaultOption, String *theText, void (*optionTester)(int aktValue))
 {
-    scrollSpeed_S = settings.getScrollSpeed();
+    // Die Scroll-Geschwindigkeit auslesen und einstellen
+    scrollSpeed_S = speedOpts[settings.getScrollSpeed()].value;
 
     u_int8_t aktOpt = defaultOption;
 
     // Erster Test der Einstellungen.
     if (optionTester != NULL)
-        optionTester(someOptions[aktOpt].value);
+        optionTester(aktOpt);
 
     // Zeit messen, in der es keine Drehung am Encoder gab.
     unsigned long noInteractionTime = millis();
@@ -27,7 +28,7 @@ uint8_t OptionScreen::showScreen(OptionValue *someOptions, u_int8_t defaultOptio
     // Zeige die übergebenen Optionen Array
     while (true)
     {
-        
+
         writeText(
             calcScrollString(0),
             calcScrollString(1),
@@ -55,9 +56,9 @@ uint8_t OptionScreen::showScreen(OptionValue *someOptions, u_int8_t defaultOptio
                 // Die Option wechseln
                 if (newPos > aktPos)
                 {
-                    //Nächsten Eintrag in der Liste
+                    // Nächsten Eintrag in der Liste
                     aktOpt++;
-                    
+
                     // Das Ende der Liste wird durch einen Value von INT_MAX angezeigt
                     if (someOptions[aktOpt].value == INT_MAX)
                     {
@@ -74,15 +75,15 @@ uint8_t OptionScreen::showScreen(OptionValue *someOptions, u_int8_t defaultOptio
 
                 // Sollte eine Livevoransicht gewünscht sein, wird hier die dazu passende Methode aufgerufen.
                 if (optionTester != NULL)
-                    optionTester(someOptions[aktOpt].value);
+                    optionTester(aktOpt);
 
                 break;
 
             case shortPress:
-                LOG_DEBUG(TAG,"shortPress");
+                LOG_DEBUG(TAG, "shortPress");
             case longPress:
-                LOG_DEBUG(TAG,"longPress");
-                return someOptions[aktOpt].value;
+                LOG_DEBUG(TAG, "longPress");
+                return aktOpt;
                 break;
             case nothing:
             default:

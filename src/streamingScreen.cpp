@@ -12,7 +12,8 @@ EncoderState StreamingScreen::showScreen()
 {
     EncoderState aktState = EncoderState::nothing;
 
-    scrollSpeed_S = settings.getScrollSpeed();
+    // Die Scroll-Geschwindigkeit auslesen und einstellen
+    scrollSpeed_S = speedOpts[settings.getScrollSpeed()].value;
 
     LOG_DEBUG(TAG, "scrollSpeed:" << scrollSpeed_S);
 
@@ -44,7 +45,7 @@ EncoderState StreamingScreen::showScreen()
 
         delay(50);
 
-        //Berechnung der Darstellung der Batterie
+        // Berechnung der Darstellung der Batterie
         lcd.create(BATT_CHAR, batterySign[aktBatt++]);
 
         if (aktBatt == 4)

@@ -55,6 +55,11 @@ char showConnection = SHOW_CONN_UDEF;
  */
 u_int8_t stationKeys[ALLOW_STATIONS];
 
+void setBrightness(int value)
+{
+    analogWrite(BEL, brightOpts[value].value);
+}
+
 /**
  * @brief Ließt die Station zu einem Index in der darstellenden Liste (stationKeys) aus.
  * Um einen einfachen Zugriff auf den NVM zu ermöglichen
@@ -187,7 +192,8 @@ void displayTimer(void *pvParameters)
         default:
             break;
         }
-
+        
+        //Delay ist wichtig wegen kooperativen Multitasking
         delay(1000);
     }
 }
@@ -207,13 +213,13 @@ void setupDisplay()
     // Wichtig hier: Der Task läuft auf dem Core 0.
     // Per Default läuft alles was sonst im Arduino startet auf dem Core 1.
     xTaskCreatePinnedToCore(
-        displayTimer, /* Function to implement the task */
-        "Task1",      /* Name of the task */
-        10000,        /* Stack size in words */
-        NULL,         /* Task input parameter */
-        0,            /* Priority of the task */
-        &displayTask, /* Task handle. */
-        0);           /* Core where the task should run */
+        displayTimer,  /* Function to implement the task */
+        "DisplayTask", /* Name of the task */
+        10000,         /* Stack size in words */
+        NULL,          /* Task input parameter */
+        0,             /* Priority of the task */
+        &displayTask,  /* Task handle. */
+        0);            /* Core where the task should run */
 }
 
 /**
@@ -280,6 +286,9 @@ String extraChar(String text)
                 break;
             case 0xB1: // ñ
                 c = 0x7d;
+                break;
+            case 0xAD: // í
+                c = 0xE8;
                 break;
             default:
                 c = 0xBB;

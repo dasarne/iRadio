@@ -10,7 +10,15 @@
  */
 #ifndef IRADIOCONFIG_HPP_
 #define IRADIOCONFIG_HPP_
- 
+
+#include <iRadioDisplay.hpp>
+
+struct OptionValue
+{
+    String name;
+    int value;
+};
+
 enum How2Continue
 {
     stay,
@@ -24,5 +32,8 @@ How2Continue configSommerZeit();
 How2Continue configClock();
 How2Continue configDisplay();
 void configRadio();
+
+extern OptionValue speedOpts[];
+extern OptionValue brightOpts[];
 
 #endif // IRADIOCONFIG_HPP_

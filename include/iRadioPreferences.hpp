@@ -130,12 +130,6 @@ public:
     u_int8_t getAnzahlStations();
 };
 
-struct WifiCredential
-{
-    String ssid;
-    String psk;
-};
-
 class Settings
 {
 private:

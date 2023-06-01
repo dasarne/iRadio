@@ -29,7 +29,8 @@ void SelectScreen::copyText(u_int8_t pos)
 uint8_t SelectScreen::showScreen(String options[], u_int8_t anzOptions, u_int8_t oldSelect)
 {
 
-    scrollSpeed_S = settings.getScrollSpeed();
+    // Die Scroll-Geschwindigkeit auslesen und einstellen
+    scrollSpeed_S = speedOpts[settings.getScrollSpeed()].value;
 
     LOG_DEBUG(TAG, "oldSelect:" << oldSelect);
 

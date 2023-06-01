@@ -19,10 +19,10 @@
 #include <streamingScreen.hpp>
 #include <selectScreen.hpp>
 #include <testScreen.hpp>
+#include <iRadioConfig.hpp>
 #include <optionScreen.hpp>
 #include <iRadioEncoder.hpp>
 #include <iRadioWifi.hpp>
-#include <iRadioConfig.hpp>
 
 #include <log.h>
 
@@ -66,6 +66,7 @@ void printSelectLCD(int Index);
 Station getCurrentStation();
 
 void setupDisplay();
+void setBrightness(int value);
 
 String extraChar(String text);
 

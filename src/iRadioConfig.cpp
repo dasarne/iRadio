@@ -3,6 +3,24 @@
 // Logging-Tag für Easy-Logger
 static const char *TAG = "CONFIG";
 
+// Mögliche Textgeschwindigkeit
+OptionValue speedOpts[] = {
+    {"Sehr Schnell", 10},
+    {"Schnell", 100},
+    {"Normal", 200},
+    {"Langsam", 400},
+    {"Sehr Langsam", 800},
+    {"", INT_MAX}}; // Ende der Liste
+
+// Mögliche Helligkeit
+OptionValue brightOpts[] = {
+    {"100%", 255},
+    {"75%", 191},
+    {"50%", 127},
+    {"25%", 64},
+    {"Aus", 0},
+    {"", INT_MAX}}; // Ende der Liste
+
 How2Continue configReset()
 {
     LOG_DEBUG(TAG, "configReset");
@@ -169,22 +187,15 @@ How2Continue configClock()
 }
 
 OptionScreen speedScreen, brightScreen;
-static u_int16_t sel2speed[] = {10, 100, 200, 400, 800};
 
 /**
  * @brief Methode, die vom OptionScreen aufgerufen wird, wenn eine neue Option getestet werden soll.
  * Hier wird die Scroll-Geschwindigkeit verändert.
  * @param value Wert der getestet wird.
  */
-void speedTestFunction(int value)
+void setTextSpeed(int value)
 {
-    speedScreen.scrollSpeed_S = sel2speed[value];
-}
-
-void setBrightness(int value)
-{
-    static u_int8_t sel2bright[] = {255, 191, 127, 64, 0};
-    analogWrite(BEL, sel2bright[value]);
+    speedScreen.scrollSpeed_S = speedOpts[value].value;
 }
 
 How2Continue configDisplay()
@@ -201,37 +212,17 @@ How2Continue configDisplay()
 
     u_int8_t selection = selectScreen.showScreen(configs, 3, 0);
 
-    // Mögliche Textgeschwindigkeit
-    OptionValue speedOpts[] = {
-        {"Sehr Schnell", 0}, // 10
-        {"Schnell", 1},      // 100
-        {"Normal", 2},       // 200
-        {"Langsam", 3},      // 400
-        {"Sehr Langsam", 4}, // 800
-        {"", INT_MAX}};      // Ende der Liste
-
-    // Mögliche Helligkeit
-    OptionValue brightOpts[] = {
-        {"100%", 0},
-        {"75%", 1},
-        {"50%", 2},
-        {"25%", 3},
-        {"Aus", 4},
-        {"", INT_MAX}}; // Ende der Liste
-
     String speedTexts[] = {"-- Text-Anzeige --", "Text: ", "", "Ich bin ein sehr langer Text, der nicht in eine Zeile passt."};
     String brightTexts[] = {"-- Helligkeit --", "Wert:", "", ""};
 
-    u_int8_t newSpeed;
-    u_int8_t oldBrightness, newBrightness;
+    u_int8_t newSpeed, newBrightness;
     do
     {
         switch (selection)
         {
         case 0: // Helligkeit
-            oldBrightness = settings.getHelligkeit();
 
-            newBrightness = brightScreen.showScreen(brightOpts, oldBrightness, brightTexts, setBrightness);
+            newBrightness = brightScreen.showScreen(brightOpts, settings.getHelligkeit(), brightTexts, setBrightness);
             if (newBrightness != UCHAR_MAX)
             {
                 settings.setHelligkeit(newBrightness);
@@ -245,16 +236,18 @@ How2Continue configDisplay()
             return stay;
             break;
         case 1: // Textgeschwindigkeit
-        //ToDo: Nur noch mit Indizes arbeiten und beim Speichern auch Indizes abspeichern. Eine Methode zum Setzen der Geschwindigkeit muss in den Source für Display. Analog dazu muss die Behandlung der Helligkeit implementiert werden.
-            newSpeed = speedScreen.showScreen(speedOpts, 2 , speedTexts, speedTestFunction);
-            LOG_DEBUG(TAG, "newSpeed: " << newSpeed);
+                // ToDo: Nur noch mit Indizes arbeiten und beim Speichern auch Indizes abspeichern. Eine Methode zum Setzen der Geschwindigkeit muss in den Source für Display. Analog dazu muss die Behandlung der Helligkeit implementiert werden.
+            newSpeed = speedScreen.showScreen(speedOpts, settings.getScrollSpeed(), speedTexts, setTextSpeed);
             if (newSpeed != UCHAR_MAX)
             {
-                settings.setScrollSpeed(sel2speed[newSpeed]);
+                settings.setScrollSpeed(newSpeed);
                 status = stay;
             }
             else
+            {
+                setTextSpeed(settings.getScrollSpeed());
                 status = leave;
+            }
             return stay;
             break;
 
