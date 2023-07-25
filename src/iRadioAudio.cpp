@@ -77,20 +77,14 @@ void setupAudio()
 
   // Connect MAX98357 I2S Amplifier Module
   audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
+  oldvolume = analogRead(VOL);
+  oldvolume = map(oldvolume, 0, 1023, 0, volume_max);
+  audio.setVolume(oldvolume);
 
   // Mute ausschalten!
   pinMode(MUTE, OUTPUT);
   digitalWrite(MUTE, LOW);
 }
-
-/** @name Ringpuffer
- * Puffer um einen Tiefpass-Filter bei dem Poti zu realisieren.
- * Es werden `buffersize` Werte gespeichert und der Mittelwert davon gebildet.
- * @{
- */
-constexpr uint8_t buffersize = 10;
-uint8_t ringpuffer[buffersize];
-uint8_t bufferPointer = 0;
 
 /**
  * @brief Gibt die aktuelle Lautstärke in Blöcken als String zurück.
@@ -119,33 +113,13 @@ String getBlocks(uint8_t volume)
     blocks += "!";
 
   // fill with spaces
-  while(blocks.length() < 7)
+  while (blocks.length() < 7)
   {
     blocks += " ";
   }
 
   return blocks;
 }
-
-void addValue(uint8_t value)
-{
-  bufferPointer++;
-  if (bufferPointer == buffersize)
-    bufferPointer = 0;
-  ringpuffer[bufferPointer] = value;
-}
-
-uint8_t getMeanValue()
-{
-  uint16_t sum = 0;
-  for (uint8_t i = 0; i < buffersize; i++)
-  {
-    sum += ringpuffer[i];
-  }
-
-  return sum / buffersize;
-}
-/// @}
 
 /**
  * @brief Regelmäßiges Aktualisieren der Audio-Einstellungen.
@@ -163,26 +137,25 @@ void loopAudioLautst()
   volume = analogRead(VOL);
   volume = map(volume, 0, 1023, 0, volume_max);
 
-  addValue(volume);
-
-  if (volume != oldvolume && volcount < 25)
+  // The poti is noisy. Only if 25 values are indifferent from the initial value the volume is set.  
+  if (volume != oldvolume)
   {
     // volume changed, increase counter
-    volcount++;
-  }
-  else if (volume != oldvolume && volcount >= 25)
-  {
-    // new volume level reached
-    volcount = 0;
-    voldisplaystart = millis();
-    uint8_t newvolume = getMeanValue();
-    oldvolume = newvolume;
-    audio.setVolume(newvolume);
-    streamingScreen.setText(String(getBlocks(newvolume)), 0);
+    if (volcount < 25)
+      volcount++;
+    else
+    {
+      // new volume level reached
+      volcount = 0;
+      voldisplaystart = millis();
+      audio.setVolume(volume);
+      streamingScreen.setText(String(getBlocks(volume)), 0);
+      oldvolume = volume;
+    }
   }
   else
   {
-    // volume not changed, reset counter
+    // new volume level reached
     volcount = 0;
   }
 }
