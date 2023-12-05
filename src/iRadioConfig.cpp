@@ -61,8 +61,8 @@ How2Continue configInternet()
     SelectScreen selectScreen;
     String configs[] = {
         extraChar("----- Internet ----"),
-        extraChar("IP:"),
-        extraChar(String("Hostname:") + WiFi.getHostname()),
+        extraChar("IP: " + WiFi.localIP().toString()),
+        extraChar(String("Hostname: ") + WiFi.getHostname()),
         extraChar("Zurück")};
 
     selectScreen.showScreen(configs, 3, 1);
