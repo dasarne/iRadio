@@ -5,6 +5,7 @@
 
 // Für die Anbindung an das Radio
 #include <iRadioDisplay.hpp>
+#include <commissioner.hpp>
 
 /**
  * @file iRadioWifi.cpp
@@ -19,13 +20,10 @@
 // Logging-Tag für Easy-Logger
 static const char *TAG = "WIFI";
 
-// WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
-WiFiManager wifiManager;
-
 String wifiMessages[3] = {
     "-- Kein Internet --",
-    "AP: CampusRadioAP",
-    "http://192.168.4.1"}; ///< Nachrichten an den Benutzer, wenn WLAN gestört ist.
+    "AP: iRadio, Pw: password",
+    "http://192.168.1.1"}; ///< Nachrichten an den Benutzer, wenn WLAN gestört ist.
 
 /* Defines für den NTP Client um die aktuelle Zeit auszulesen.
  * Weitere Informationen zu NTP: https://de.wikipedia.org/wiki/Network_Time_Protocol
@@ -84,17 +82,14 @@ void setupWifi()
 {
     // Verbindung zum WLAN aufbauen
     // reconnect();
+    commissionWiFi();
 
     /* Für den Fall, dass wir keinen Zugang zum Netzwerk abgespeichert haben wird der Wifimanager gestartet.
      * Wenn kein Netz mehr da ist, macht der Wifimanager einen AccessPoint auf und bietet unter http://192.168.4.1 ein Webinterface um die
      * WLAN-Verbindung zu konfigurieren.
      */
     LOG_DEBUG(TAG, "StartWifi-Manager");
-    if (!wifiManager.autoConnect("CampusRadioAP", NULL))
-    {
-        Serial.println("failed to connect!!");
-        ESP.restart();
-    }
+    
 
     /* Initialisieren des NTP-Client. Eine gute Anleitung findet sich hier:
      * https://randomnerdtutorials.com/esp32-ntp-client-date-time-arduino-ide/
